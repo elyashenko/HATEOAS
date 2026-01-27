@@ -1,0 +1,33 @@
+{
+  "name": "hateoas-blog-server",
+  "version": "1.0.0",
+  "description": "Server API для HATEOAS блога на Fastify",
+  "author": "",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "node dist/main.js",
+    "start:dev": "tsx watch src/main.ts",
+    "start:prod": "node dist/main.js",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "fastify": "^4.24.3",
+    "@fastify/cors": "^8.4.0",
+    "class-validator": "^0.14.0",
+    "class-transformer": "^0.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "prettier": "^3.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
