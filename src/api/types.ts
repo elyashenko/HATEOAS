@@ -16,9 +16,8 @@ export interface HateoasLink {
 
 /**
  * Базовый интерфейс для HAL ресурса
- * @template T - тип данных ресурса (используется в HateoasCollection)
  */
-export interface HateoasResource<_T = Record<string, unknown>> {
+export interface HateoasResource {
   _links: Record<string, HateoasLink | HateoasLink[]>;
   _embedded?: Record<string, unknown>;
   [key: string]: unknown;

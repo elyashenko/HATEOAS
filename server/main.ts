@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import Fastify from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import { PostsService } from './posts/posts.service.js';
 import { NotFoundError } from './posts/posts.service.js';
@@ -10,9 +10,11 @@ import { UpdatePostDto } from './posts/dto/update-post.dto.js';
 import { PaginationQueryDto } from './posts/dto/pagination-query.dto.js';
 import { createPostHalResource, createPostsCollectionHalResource } from './common/utils/hateoas.util.js';
 
-const fastify = Fastify({
-  logger: true,
-});
+// Функция для создания и настройки Fastify приложения
+export async function buildApp(): Promise<FastifyInstance> {
+  const fastify = Fastify({
+    logger: true,
+  });
 
 // Регистрация CORS
 fastify.register(cors, {
@@ -210,15 +212,23 @@ fastify.post('/api/posts/:id/republish', async (request, reply) => {
   }
 });
 
-// Запуск сервера
+  return fastify;
+}
+
+// Запуск сервера (только для локальной разработки)
 async function bootstrap() {
   try {
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
+    const app = await buildApp();
+    await app.listen({ port: 3000, host: '0.0.0.0' });
     console.log('🚀 Server запущен на http://localhost:3000/api');
   } catch (err) {
-    fastify.log.error(err);
+    console.error(err);
     process.exit(1);
   }
 }
 
-bootstrap();
+// Запускаем сервер только если файл запущен напрямую (не импортирован)
+// Проверяем, что мы не в serverless окружении Vercel
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  bootstrap();
+}
