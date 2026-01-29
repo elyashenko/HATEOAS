@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { IsString, IsOptional } from 'class-validator';
 
 export class UpdatePostDto {
