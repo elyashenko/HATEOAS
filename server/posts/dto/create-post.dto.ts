@@ -11,5 +11,5 @@ export class CreatePostDto {
 
   @IsString()
   @IsNotEmpty()
-  author: string;
+  author!: string;
 }
