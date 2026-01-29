@@ -18,9 +18,7 @@ export interface HateoasLink {
  * Базовый интерфейс для HAL ресурса
  * @template T - тип данных ресурса (используется в HateoasCollection)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- T используется в HateoasCollection<T extends HateoasResource>
-// @ts-expect-error - T используется в constraint для HateoasCollection<T extends HateoasResource>
-export interface HateoasResource<T = Record<string, unknown>> {
+export interface HateoasResource<_T = Record<string, unknown>> {
   _links: Record<string, HateoasLink | HateoasLink[]>;
   _embedded?: Record<string, unknown>;
   [key: string]: unknown;

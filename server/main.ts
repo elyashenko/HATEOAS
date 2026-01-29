@@ -1,13 +1,14 @@
+import 'reflect-metadata';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { PostsService } from './posts/posts.service';
-import { NotFoundError } from './posts/posts.service';
+import { PostsService } from './posts/posts.service.js';
+import { NotFoundError } from './posts/posts.service.js';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { CreatePostDto } from './posts/dto/create-post.dto';
-import { UpdatePostDto } from './posts/dto/update-post.dto';
-import { PaginationQueryDto } from './posts/dto/pagination-query.dto';
-import { createPostHalResource, createPostsCollectionHalResource } from './common/utils/hateoas.util';
+import { CreatePostDto } from './posts/dto/create-post.dto.js';
+import { UpdatePostDto } from './posts/dto/update-post.dto.js';
+import { PaginationQueryDto } from './posts/dto/pagination-query.dto.js';
+import { createPostHalResource, createPostsCollectionHalResource } from './common/utils/hateoas.util.js';
 
 const fastify = Fastify({
   logger: true,
@@ -15,7 +16,12 @@ const fastify = Fastify({
 
 // Регистрация CORS
 fastify.register(cors, {
-  origin: 'http://localhost:3001',
+  origin: [
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ],
   credentials: true,
 });
 
@@ -180,7 +186,7 @@ fastify.post('/api/posts/:id/republish', async (request, reply) => {
 // Запуск сервера
 async function bootstrap() {
   try {
-    await fastify.listen({ port: 3000 });
+    await fastify.listen({ port: 3000, host: '0.0.0.0' });
     console.log('🚀 Server запущен на http://localhost:3000/api');
   } catch (err) {
     fastify.log.error(err);

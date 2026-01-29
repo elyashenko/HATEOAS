@@ -1,6 +1,6 @@
-import { Post, PostStatus } from './entities/post.entity';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { Post, PostStatus } from './entities/post.entity.js';
+import { CreatePostDto } from './dto/create-post.dto.js';
+import { UpdatePostDto } from './dto/update-post.dto.js';
 
 export class NotFoundError extends Error {
   constructor(message: string) {

@@ -1,10 +1,18 @@
-import { HateoasLink, HateoasResource, HateoasCollection } from '../interfaces/hateoas-link.interface';
-import { Post, PostStatus } from '../../posts/entities/post.entity';
+import { HateoasLink, HateoasResource, HateoasCollection } from '../interfaces/hateoas-link.interface.js';
+import { Post, PostStatus } from '../../posts/entities/post.entity.js';
+
+/**
+ * HAL-ресурс поста с датами в виде строк
+ */
+type PostHalResource = Omit<Post, 'createdAt' | 'publishedAt'> & {
+  createdAt: string;
+  publishedAt: string | null;
+} & HateoasResource;
 
 /**
  * Создает HAL+JSON представление поста с HATEOAS ссылками
  */
-export function createPostHalResource(post: Post, baseUrl: string = ''): Post & HateoasResource {
+export function createPostHalResource(post: Post, baseUrl: string = ''): PostHalResource {
   const links: Record<string, HateoasLink> = {
     self: {
       href: `${baseUrl}/api/posts/${post.id}`,
@@ -76,7 +84,7 @@ export function createPostsCollectionHalResource(
   size: number,
   totalElements: number,
   baseUrl: string = '',
-): HateoasCollection<Post & HateoasResource> {
+): HateoasCollection<PostHalResource> {
   const totalPages = Math.ceil(totalElements / size);
   const items = posts.map((post) => createPostHalResource(post, baseUrl));
 
