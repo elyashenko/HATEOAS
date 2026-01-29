@@ -16,6 +16,48 @@ export async function buildApp(): Promise<FastifyInstance> {
     logger: true,
   });
 
+// Глобальный обработчик ошибок
+fastify.setErrorHandler((error, request, reply) => {
+  // Логируем ошибку для диагностики
+  fastify.log.error({
+    err: error,
+    url: request.url,
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    query: request.query,
+    params: request.params,
+  }, 'Unhandled error occurred');
+
+  // Определяем статус код в зависимости от типа ошибки
+  let statusCode = 500;
+  if (error instanceof NotFoundError) {
+    statusCode = 404;
+  } else if ((error as any).statusCode) {
+    statusCode = (error as any).statusCode;
+  } else if ((error as any).status) {
+    statusCode = (error as any).status;
+  }
+  
+  // Формируем ответ с ошибкой в формате, который ожидает клиент
+  const errorResponse: { error: { code: string; message: string; details?: unknown } } = {
+    error: {
+      code: String(statusCode),
+      message: error.message || 'A server error has occurred',
+    },
+  };
+
+  // В режиме разработки добавляем детали ошибки
+  if (process.env.NODE_ENV !== 'production') {
+    errorResponse.error.details = {
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  return reply.code(statusCode).send(errorResponse);
+});
+
 // Регистрация CORS
 fastify.register(cors, {
   origin: (origin, callback) => {
@@ -77,27 +119,37 @@ async function validateDto<T extends object>(
 
 // Роуты для постов
 fastify.post('/api/posts', async (request, reply) => {
-  const validation = await validateDto(CreatePostDto, request.body);
-  if (!validation.isValid) {
-    return reply.code(400).send({ errors: validation.errors });
-  }
+  try {
+    const validation = await validateDto(CreatePostDto, request.body);
+    if (!validation.isValid) {
+      return reply.code(400).send({ errors: validation.errors });
+    }
 
-  const post = postsService.create(validation.dto!);
-  const halResource = createPostHalResource(post);
-  return reply.code(201).type('application/hal+json').send(halResource);
+    const post = postsService.create(validation.dto!);
+    const halResource = createPostHalResource(post);
+    return reply.code(201).type('application/hal+json').send(halResource);
+  } catch (error) {
+    fastify.log.error({ err: error, body: request.body }, 'Error creating post');
+    throw error; // Передаем ошибку в глобальный обработчик
+  }
 });
 
 fastify.get('/api/posts', async (request, reply) => {
-  const validation = await validateDto(PaginationQueryDto, request.query);
-  if (!validation.isValid) {
-    return reply.code(400).send({ errors: validation.errors });
-  }
+  try {
+    const validation = await validateDto(PaginationQueryDto, request.query);
+    if (!validation.isValid) {
+      return reply.code(400).send({ errors: validation.errors });
+    }
 
-  const page = validation.dto?.page || 1;
-  const size = validation.dto?.size || 10;
-  const { posts, total } = postsService.findAll(page, size);
-  const halResource = createPostsCollectionHalResource(posts, page, size, total);
-  return reply.type('application/hal+json').send(halResource);
+    const page = validation.dto?.page || 1;
+    const size = validation.dto?.size || 10;
+    const { posts, total } = postsService.findAll(page, size);
+    const halResource = createPostsCollectionHalResource(posts, page, size, total);
+    return reply.type('application/hal+json').send(halResource);
+  } catch (error) {
+    fastify.log.error({ err: error, query: request.query }, 'Error fetching posts');
+    throw error; // Передаем ошибку в глобальный обработчик
+  }
 });
 
 fastify.get('/api/posts/:id', async (request, reply) => {

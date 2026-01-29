@@ -13,6 +13,14 @@ type PostHalResource = Omit<Post, 'createdAt' | 'publishedAt'> & {
  * Создает HAL+JSON представление поста с HATEOAS ссылками
  */
 export function createPostHalResource(post: Post, baseUrl: string = ''): PostHalResource {
+  if (!post || !post.id) {
+    throw new Error('Invalid post: post or post.id is missing');
+  }
+
+  // Убеждаемся, что даты являются объектами Date
+  const createdAt = post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt);
+  const publishedAt = post.publishedAt instanceof Date ? post.publishedAt : (post.publishedAt ? new Date(post.publishedAt) : null);
+
   const links: Record<string, HateoasLink> = {
     self: {
       href: `${baseUrl}/api/posts/${post.id}`,
@@ -70,8 +78,8 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
   return {
     ...post,
     _links: links,
-    createdAt: post.createdAt.toISOString(),
-    publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+    createdAt: createdAt.toISOString(),
+    publishedAt: publishedAt ? publishedAt.toISOString() : null,
   };
 }
 

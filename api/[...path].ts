@@ -7,7 +7,17 @@ let app: Awaited<ReturnType<typeof buildApp>> | null = null;
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Инициализируем приложение при первом запросе
   if (!app) {
-    app = await buildApp();
+    try {
+      app = await buildApp();
+    } catch (error) {
+      console.error('Failed to initialize Fastify app:', error);
+      return res.status(500).json({ 
+        error: { 
+          code: '500', 
+          message: 'Failed to initialize server application' 
+        } 
+      });
+    }
   }
 
   // В catch-all роуте путь передается через req.query.path
@@ -58,6 +68,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.send(response.body);
   } catch (error) {
     console.error('Error handling request:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    // Логируем полную информацию об ошибке
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: errorStack,
+      url: url,
+      method: req.method,
+    });
+    
+    return res.status(500).json({ 
+      error: { 
+        code: '500', 
+        message: 'A server error has occurred',
+        ...(process.env.NODE_ENV !== 'production' && { details: errorMessage })
+      } 
+    });
   }
 }
