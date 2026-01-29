@@ -67,7 +67,7 @@
     "vitest": "^4.0.18"
   },
   "overrides": {
-    "path-to-regexp": "^6.3.0",
-    "undici": "^6.22.1"
+    "path-to-regexp": "^8.0.0",
+    "undici": "^7.19.1"
   }
 }
