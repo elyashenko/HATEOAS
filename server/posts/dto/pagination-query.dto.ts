@@ -1,18 +1,8 @@
-import 'reflect-metadata';
-import { IsOptional, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
 
-export class PaginationQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
+export const PaginationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  size: z.coerce.number().int().min(1).max(100).default(10),
+}).partial();
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  size?: number = 10;
-}
+export type PaginationQueryDto = z.infer<typeof PaginationQuerySchema>;

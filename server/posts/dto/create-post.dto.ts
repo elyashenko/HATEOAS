@@ -1,16 +1,9 @@
-import 'reflect-metadata';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { z } from 'zod';
 
-export class CreatePostDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
+export const CreatePostSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  author: z.string().min(1, 'Author is required'),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  content: string;
-
-  @IsString()
-  @IsNotEmpty()
-  author!: string;
-}
+export type CreatePostDto = z.infer<typeof CreatePostSchema>;

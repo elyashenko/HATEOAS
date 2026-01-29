@@ -1,13 +1,11 @@
-import 'reflect-metadata';
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import { PostsService } from './posts/posts.service.js';
 import { NotFoundError } from './posts/posts.service.js';
-import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
-import { CreatePostDto } from './posts/dto/create-post.dto.js';
-import { UpdatePostDto } from './posts/dto/update-post.dto.js';
-import { PaginationQueryDto } from './posts/dto/pagination-query.dto.js';
+import { z } from 'zod';
+import { CreatePostSchema } from './posts/dto/create-post.dto.js';
+import { UpdatePostSchema } from './posts/dto/update-post.dto.js';
+import { PaginationQuerySchema } from './posts/dto/pagination-query.dto.js';
 import { createPostHalResource, createPostsCollectionHalResource } from './common/utils/hateoas.util.js';
 
 // Функция для создания и настройки Fastify приложения
@@ -99,28 +97,28 @@ fastify.register(cors, {
 // Инициализация сервиса
 const postsService = new PostsService();
 
-// Вспомогательная функция для валидации DTO
-async function validateDto<T extends object>(
-  DtoClass: new () => T,
+// Вспомогательная функция для валидации DTO с Zod
+function validateDto<T extends z.ZodTypeAny>(
+  schema: T,
   data: unknown,
-): Promise<{ isValid: boolean; dto?: T; errors?: string[] }> {
-  const dto = plainToInstance(DtoClass, data);
-  const errors = await validate(dto);
+): { isValid: boolean; dto?: z.infer<T>; errors?: string[] } {
+  const result = schema.safeParse(data);
 
-  if (errors.length > 0) {
-    const errorMessages = errors.flatMap((error) =>
-      Object.values(error.constraints || {}),
-    );
+  if (!result.success) {
+    const errorMessages = result.error.issues.map((err) => {
+      const path = err.path.join('.');
+      return path ? `${path}: ${err.message}` : err.message;
+    });
     return { isValid: false, errors: errorMessages };
   }
 
-  return { isValid: true, dto };
+  return { isValid: true, dto: result.data };
 }
 
 // Роуты для постов
 fastify.post('/api/posts', async (request, reply) => {
   try {
-    const validation = await validateDto(CreatePostDto, request.body);
+    const validation = validateDto(CreatePostSchema, request.body);
     if (!validation.isValid) {
       return reply.code(400).send({ errors: validation.errors });
     }
@@ -136,7 +134,7 @@ fastify.post('/api/posts', async (request, reply) => {
 
 fastify.get('/api/posts', async (request, reply) => {
   try {
-    const validation = await validateDto(PaginationQueryDto, request.query);
+    const validation = validateDto(PaginationQuerySchema, request.query);
     if (!validation.isValid) {
       return reply.code(400).send({ errors: validation.errors });
     }
@@ -176,7 +174,7 @@ fastify.put('/api/posts/:id', async (request, reply) => {
     return reply.code(400).send({ error: 'Invalid post ID' });
   }
 
-  const validation = await validateDto(UpdatePostDto, request.body);
+  const validation = validateDto(UpdatePostSchema, request.body);
   if (!validation.isValid) {
     return reply.code(400).send({ errors: validation.errors });
   }

@@ -1,12 +1,8 @@
-import 'reflect-metadata';
-import { IsString, IsOptional } from 'class-validator';
+import { z } from 'zod';
 
-export class UpdatePostDto {
-  @IsString()
-  @IsOptional()
-  title?: string;
+export const UpdatePostSchema = z.object({
+  title: z.string().min(1).optional(),
+  content: z.string().min(1).optional(),
+});
 
-  @IsString()
-  @IsOptional()
-  content?: string;
-}
+export type UpdatePostDto = z.infer<typeof UpdatePostSchema>;
