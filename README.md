@@ -38,54 +38,34 @@ src/
 
 ## Установка и запуск
 
-### Server (Fastify + TypeScript)
-
-1. Перейдите в директорию server:
-```bash
-cd server
-```
-
-2. Установите зависимости:
-```bash
-npm install
-```
-
-3. Запустите сервер:
-```bash
-npm run start:dev
-```
-
-Сервер будет доступен на `http://localhost:3000/api`
-
-### Frontend (React)
-
 1. В корневой директории проекта установите зависимости:
 ```bash
 npm install
 ```
 
-2. Запустите dev сервер:
+### Запуск обоих сервисов одновременно (рекомендуется)
+
+Для полноценной работы приложения запустите оба сервиса одной командой:
 ```bash
 npm run dev
 ```
 
-Frontend будет доступен на `http://localhost:3001`
+Эта команда запустит:
+- **Server** на `http://localhost:3000/api`
+- **Frontend** на `http://localhost:3001`
 
-### Запуск обоих сервисов
+### Запуск отдельных сервисов
 
-Для полноценной работы приложения необходимо запустить оба сервиса одновременно:
+Если нужно запустить только один из сервисов:
 
-**Терминал 1 (Server):**
+**Только Frontend:**
 ```bash
-cd server
-npm install
-npm run start:dev
+npm run dev:client
 ```
 
-**Терминал 2 (Frontend):**
+**Только Server:**
 ```bash
-npm install
-npm run dev
+npm run dev:server
 ```
 
 ### Тесты

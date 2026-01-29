@@ -19,7 +19,12 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:server": "eslint \"server/**/*.ts\" --fix",
     "format": "prettier --write \"server/**/*.ts\" \"src/**/*.{ts,tsx}\"",
-    "kill-ports": "./kill-ports.sh"
+    "kill-ports": "./kill-ports.sh",
+    "release": "commit-and-tag-version",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:major": "commit-and-tag-version --release-as major",
+    "release:patch": "commit-and-tag-version --release-as patch",
+    "release:prerelease": "commit-and-tag-version --prerelease"
   },
   "dependencies": {
     "@fastify/cors": "^8.4.0",
@@ -44,6 +49,7 @@
     "@typescript-eslint/parser": "^6.17.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "commit-and-tag-version": "^12.6.1",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
