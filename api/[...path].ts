@@ -20,29 +20,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // В catch-all роуте путь передается через req.query.path
-  const pathParam = req.query.path as string | string[] | undefined;
-  const path = Array.isArray(pathParam) ? pathParam.join('/') : (pathParam || '');
+  // В Vercel catch-all роуте путь передается через req.query.path
+  // Для запроса /api/posts?page=1&size=10:
+  // - req.url = '/api/posts?page=1&size=10'
+  // - req.query.path = ['posts'] или 'posts'
+  // - req.query.page = '1'
+  // - req.query.size = '10'
   
-  // Строим полный путь с префиксом /api
-  // Если путь пустой, используем просто /api
-  const fullPath = path ? `/api/${path}` : '/api';
-  
-  // Добавляем query параметры (исключаем служебный параметр path)
-  const queryParams = { ...req.query };
-  delete queryParams.path;
-  
-  const queryString = Object.keys(queryParams)
-    .map((key) => {
-      const value = queryParams[key];
-      if (Array.isArray(value)) {
-        return value.map((v) => `${encodeURIComponent(key)}=${encodeURIComponent(String(v))}`).join('&');
+  // Используем req.url напрямую, если он начинается с /api
+  let url: string;
+  if (req.url && req.url.startsWith('/api')) {
+    url = req.url;
+  } else {
+    // Иначе конструируем путь из query параметров
+    const pathParam = req.query.path;
+    let path: string;
+    if (Array.isArray(pathParam)) {
+      path = pathParam.join('/');
+    } else if (typeof pathParam === 'string') {
+      path = pathParam;
+    } else {
+      path = '';
+    }
+    
+    const fullPath = path ? `/api/${path}` : '/api';
+    
+    // Добавляем query параметры (исключаем служебный параметр path)
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.query)) {
+      if (key !== 'path') {
+        if (Array.isArray(value)) {
+          // Для массивов используем первый элемент или объединяем
+          queryParams[key] = value[0] || '';
+        } else if (value !== undefined) {
+          queryParams[key] = String(value);
+        }
       }
-      return `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`;
-    })
-    .join('&');
+    }
+    
+    const queryString = Object.keys(queryParams)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+      .join('&');
+    
+    url = queryString ? `${fullPath}?${queryString}` : fullPath;
+  }
   
-  const url = queryString ? `${fullPath}?${queryString}` : fullPath;
+  // Логируем для отладки
+  console.log('Vercel handler:', {
+    originalUrl: req.url,
+    method: req.method,
+    query: req.query,
+    finalUrl: url,
+  });
 
   // Обрабатываем запрос через Fastify
   try {

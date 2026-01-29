@@ -3,8 +3,8 @@
   "buildCommand": "npm run build",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path]"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
