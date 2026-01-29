@@ -28,7 +28,7 @@ export function PostList() {
           Ошибка загрузки постов: {errorMessage}
         </div>
         <div className="text-sm text-gray-500">
-          Проверьте, что server API запущен на http://localhost:3000/api
+          Проверьте, что server API доступен и настроен правильно
         </div>
       </div>
     );

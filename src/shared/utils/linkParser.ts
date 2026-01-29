@@ -1,4 +1,5 @@
 import type { HateoasLink } from '../../api/types';
+import { resolveApiUrl } from '../../api/config';
 
 /**
  * Утилиты для работы со ссылками
@@ -12,11 +13,7 @@ export function getAbsoluteUrl(link: HateoasLink | null): string | null {
     return null;
   }
 
-  if (link.href.startsWith('http')) {
-    return link.href;
-  }
-
-  return `http://localhost:3000${link.href}`;
+  return resolveApiUrl(link.href);
 }
 
 /**

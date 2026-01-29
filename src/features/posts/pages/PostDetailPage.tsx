@@ -35,7 +35,7 @@ export function PostDetailPage() {
           </div>
           {error && (
             <div className="text-sm text-gray-500 mb-4">
-              Проверьте, что server API запущен на http://localhost:3000/api
+              Проверьте, что server API доступен и настроен правильно
             </div>
           )}
         </div>

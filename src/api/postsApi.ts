@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BlogPost, HateoasCollection } from './types';
 import { HateoasClient } from './hateoas-client';
 import { ActionNotAvailableError } from './types';
+import { getApiBaseUrl, resolveApiUrl } from './config';
 
 /**
  * RTK Query API для работы с постами через HATEOAS
@@ -9,7 +10,7 @@ import { ActionNotAvailableError } from './types';
 export const postsApi = createApi({
   reducerPath: 'postsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: getApiBaseUrl(),
     headers: {
       Accept: 'application/hal+json',
       'Content-Type': 'application/json',
@@ -77,9 +78,7 @@ export const postsApi = createApi({
         }
 
         // Выполняем PUT запрос по ссылке update
-        const href = updateLink.href.startsWith('http')
-          ? updateLink.href
-          : `http://localhost:3000${updateLink.href}`;
+        const href = resolveApiUrl(updateLink.href);
 
         const response = await fetch(href, {
           method: 'PUT',
@@ -189,9 +188,7 @@ export const postsApi = createApi({
           };
         }
 
-        const href = deleteLink.href.startsWith('http')
-          ? deleteLink.href
-          : `http://localhost:3000${deleteLink.href}`;
+        const href = resolveApiUrl(deleteLink.href);
 
         const response = await fetch(href, {
           method: 'DELETE',

@@ -20,8 +20,8 @@ export function formatError(error: unknown): string {
     // Ошибка сети (сервер недоступен, CORS и т.д.)
     if (fetchError.status === 'FETCH_ERROR') {
       const message = (fetchError.error as string) || 'Ошибка сети';
-      if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-        return 'Не удалось подключиться к серверу. Убедитесь, что server запущен на http://localhost:3000/api';
+      if (message.includes('Failed to fetch') || message.includes('NetworkError') || message.includes('CORS')) {
+        return 'Не удалось подключиться к серверу API. Проверьте настройки сети и CORS.';
       }
       return `Ошибка сети: ${message}`;
     }

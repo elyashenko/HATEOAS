@@ -1,4 +1,5 @@
 import type { HateoasLink, HateoasResource, LinkRelationType } from './types';
+import { resolveApiUrl } from './config';
 
 /**
  * Универсальный клиент для работы с HATEOAS ссылками
@@ -75,7 +76,7 @@ export class HateoasClient {
     }
 
     const method = link.method || 'GET';
-    const url = link.href.startsWith('http') ? link.href : `http://localhost:3000${link.href}`;
+    const url = resolveApiUrl(link.href);
 
     const options: RequestInit = {
       method,

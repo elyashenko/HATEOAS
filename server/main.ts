@@ -16,12 +16,39 @@ const fastify = Fastify({
 
 // Регистрация CORS
 fastify.register(cors, {
-  origin: [
-    'http://localhost:3001',
-    'http://127.0.0.1:3001',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ],
+  origin: (origin, callback) => {
+    // Разрешаем запросы без origin (например, Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const allowedOrigins = [
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://hateoas.vercel.app',
+      // Разрешаем все поддомены vercel.app для продакшена
+      /^https:\/\/.*\.vercel\.app$/,
+    ];
+
+    // Проверяем, соответствует ли origin одному из разрешенных
+    const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  },
   credentials: true,
 });
 
