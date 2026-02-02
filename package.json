@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.4.0",
+    "dayjs": "^1.11.13",
     "@reduxjs/toolkit": "^2.0.1",
     "fastify": "^4.24.3",
     "react": "^18.2.0",

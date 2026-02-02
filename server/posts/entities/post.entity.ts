@@ -10,8 +10,8 @@ export class Post {
   content!: string;
   author!: string;
   status!: PostStatus;
-  createdAt!: Date;
-  publishedAt!: Date | null;
+  createdAt!: string;
+  publishedAt!: string | null;
 
   constructor(partial: Partial<Post>) {
     Object.assign(this, partial);

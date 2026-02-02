@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Post, PostStatus } from './entities/post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
@@ -50,7 +51,7 @@ export class PostsService {
       id: this.nextId++,
       ...createPostDto,
       status: PostStatus.DRAFT,
-      createdAt: new Date(),
+      createdAt: dayjs().toISOString(),
       publishedAt: null,
     });
     this.posts.push(post);
@@ -77,7 +78,7 @@ export class PostsService {
       throw new Error(`Нельзя опубликовать пост со статусом ${post.status}`);
     }
     post.status = PostStatus.PUBLISHED;
-    post.publishedAt = new Date();
+    post.publishedAt = dayjs().toISOString();
     return post;
   }
 
@@ -96,7 +97,7 @@ export class PostsService {
       throw new Error(`Нельзя переопубликовать пост со статусом ${post.status}`);
     }
     post.status = PostStatus.PUBLISHED;
-    post.publishedAt = new Date();
+    post.publishedAt = dayjs().toISOString();
     return post;
   }
 }

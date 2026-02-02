@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import dayjs from 'dayjs';
 import { Post, PostStatus } from './entities/post.entity.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,15 +29,15 @@ export function getMockPosts(): Partial<Post>[] {
   const jsonData = readFileSync(jsonPath, 'utf-8');
   const mockData: MockPostData[] = JSON.parse(jsonData);
 
-  const now = new Date();
+  const now = dayjs();
 
   return mockData.map((data) => {
     const createdAt = data.createdAtOffset
-      ? new Date(now.getTime() + data.createdAtOffset)
-      : now;
+      ? now.add(data.createdAtOffset, 'ms').toISOString()
+      : now.toISOString();
     const publishedAt =
       data.publishedAtOffset !== null && data.publishedAtOffset !== undefined
-        ? new Date(now.getTime() + data.publishedAtOffset)
+        ? now.add(data.publishedAtOffset, 'ms').toISOString()
         : null;
 
     return {

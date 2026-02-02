@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import type { BlogPost } from '../../../api/types';
 import { useHateoasLinks } from '../hooks/useHateoasLinks';
 import {
@@ -75,9 +76,9 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
       <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
         <span>Автор: {post.author}</span>
         <span>
-          Создан: {new Date(post.createdAt).toLocaleDateString('ru-RU')}
+          Создан: {dayjs(post.createdAt).format('DD.MM.YYYY')}
           {post.publishedAt && (
-            <> | Опубликован: {new Date(post.publishedAt).toLocaleDateString('ru-RU')}</>
+            <> | Опубликован: {dayjs(post.publishedAt).format('DD.MM.YYYY')}</>
           )}
         </span>
       </div>
