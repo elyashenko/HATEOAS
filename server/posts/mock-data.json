@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "Как использовать HATEOAS",
+    "content": "HATEOAS (Hypermedia as the Engine of Application State) — это архитектурный стиль REST API, который позволяет клиенту динамически навигироваться по API через гипермедиа-ссылки.",
+    "author": "Иван Петров",
+    "status": "DRAFT",
+    "createdAtOffset": 0,
+    "publishedAt": null
+  },
+  {
+    "id": 2,
+    "title": "Преимущества HAL+JSON",
+    "content": "HAL (Hypertext Application Language) — это простой формат для представления гипермедиа ресурсов. Он позволяет легко добавлять ссылки и встроенные ресурсы.",
+    "author": "Мария Иванова",
+    "status": "PUBLISHED",
+    "createdAtOffset": -86400000,
+    "publishedAtOffset": -86400000
+  },
+  {
+    "id": 3,
+    "title": "Архитектура REST API",
+    "content": "REST API должен быть stateless, использовать стандартные HTTP методы и коды ответов, а также поддерживать кэширование.",
+    "author": "Алексей Сидоров",
+    "status": "ARCHIVED",
+    "createdAtOffset": -172800000,
+    "publishedAtOffset": -86400000
+  }
+]

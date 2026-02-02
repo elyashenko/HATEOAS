@@ -1,6 +1,7 @@
 import { Post, PostStatus } from './entities/post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
+import { getMockPosts } from './mock-data.js';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -15,43 +16,15 @@ export class PostsService {
   private nextId = 1;
 
   constructor() {
-    // Инициализация тестовыми данными
+    // Инициализация мок-данными
     this.seedData();
   }
 
   private seedData() {
-    const now = new Date();
-    const publishedDate = new Date(now.getTime() - 86400000); // день назад
-
-    this.posts = [
-      new Post({
-        id: this.nextId++,
-        title: 'Как использовать HATEOAS',
-        content: 'HATEOAS (Hypermedia as the Engine of Application State) — это архитектурный стиль REST API, который позволяет клиенту динамически навигироваться по API через гипермедиа-ссылки.',
-        author: 'Иван Петров',
-        status: PostStatus.DRAFT,
-        createdAt: now,
-        publishedAt: null,
-      }),
-      new Post({
-        id: this.nextId++,
-        title: 'Преимущества HAL+JSON',
-        content: 'HAL (Hypertext Application Language) — это простой формат для представления гипермедиа ресурсов. Он позволяет легко добавлять ссылки и встроенные ресурсы.',
-        author: 'Мария Иванова',
-        status: PostStatus.PUBLISHED,
-        createdAt: publishedDate,
-        publishedAt: publishedDate,
-      }),
-      new Post({
-        id: this.nextId++,
-        title: 'Архитектура REST API',
-        content: 'REST API должен быть stateless, использовать стандартные HTTP методы и коды ответов, а также поддерживать кэширование.',
-        author: 'Алексей Сидоров',
-        status: PostStatus.ARCHIVED,
-        createdAt: new Date(now.getTime() - 172800000), // 2 дня назад
-        publishedAt: publishedDate,
-      }),
-    ];
+    const mockData = getMockPosts();
+    this.posts = mockData.map((data) => new Post(data));
+    // Устанавливаем nextId на максимальный ID из мок-данных + 1
+    this.nextId = Math.max(...mockData.map((p) => p.id || 0)) + 1;
   }
 
   findAll(page: number = 1, size: number = 10): { posts: Post[]; total: number } {
