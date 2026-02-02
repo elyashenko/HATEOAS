@@ -1,18 +1,10 @@
-import { HateoasLink, HateoasResource, HateoasCollection } from '../interfaces/hateoas-link.interface.js';
+import { HateoasLink, PostHalResponse, PostsCollectionHalResponse } from '../interfaces/hateoas-link.interface.js';
 import { Post, PostStatus } from '../../posts/entities/post.entity.js';
 
 /**
- * HAL-ресурс поста с датами в виде строк
+ * Создает HAL+JSON представление поста с явными _links
  */
-type PostHalResource = Omit<Post, 'createdAt' | 'publishedAt'> & {
-  createdAt: string;
-  publishedAt: string | null;
-} & HateoasResource;
-
-/**
- * Создает HAL+JSON представление поста с HATEOAS ссылками
- */
-export function createPostHalResource(post: Post, baseUrl: string = ''): PostHalResource {
+export function createPostHalResource(post: Post, baseUrl: string = ''): PostHalResponse {
   if (!post || !post.id) {
     throw new Error('Invalid post: post or post.id is missing');
   }
@@ -80,7 +72,7 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
 }
 
 /**
- * Создает HAL+JSON коллекцию постов с пагинацией
+ * Создает HAL+JSON коллекцию постов с явными _links и _embedded
  */
 export function createPostsCollectionHalResource(
   posts: Post[],
@@ -88,7 +80,7 @@ export function createPostsCollectionHalResource(
   size: number,
   totalElements: number,
   baseUrl: string = '',
-): HateoasCollection<PostHalResource> {
+): PostsCollectionHalResponse {
   const totalPages = Math.ceil(totalElements / size);
   const items = posts.map((post) => createPostHalResource(post, baseUrl));
 

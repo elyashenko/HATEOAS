@@ -22,3 +22,27 @@ export interface HateoasCollection<T extends HateoasResource> extends HateoasRes
   totalElements?: number;
   totalPages?: number;
 }
+
+/** Ответ API: один пост в формате HAL+JSON (явные _links) */
+export interface PostHalResponse {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  status: string;
+  createdAt: string;
+  publishedAt: string | null;
+  _links: Record<string, HateoasLink>;
+}
+
+/** Ответ API: коллекция постов в формате HAL+JSON (явные _links и _embedded) */
+export interface PostsCollectionHalResponse {
+  _links: Record<string, HateoasLink>;
+  _embedded: {
+    items: PostHalResponse[];
+  };
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

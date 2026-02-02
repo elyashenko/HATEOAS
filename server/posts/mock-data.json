@@ -1,29 +1,116 @@
-[
-  {
-    "id": 1,
-    "title": "Как использовать HATEOAS",
-    "content": "HATEOAS (Hypermedia as the Engine of Application State) — это архитектурный стиль REST API, который позволяет клиенту динамически навигироваться по API через гипермедиа-ссылки.",
-    "author": "Иван Петров",
-    "status": "DRAFT",
-    "createdAtOffset": 0,
-    "publishedAt": null
+{
+  "_links": {
+    "self": {
+      "href": "/api/posts?page=1&size=10",
+      "templated": false
+    },
+    "first": {
+      "href": "/api/posts?page=1&size=10",
+      "templated": false
+    },
+    "last": {
+      "href": "/api/posts?page=1&size=10",
+      "templated": false
+    },
+    "prev": {
+      "href": "/api/posts?page=0&size=10",
+      "templated": false
+    },
+    "next": {
+      "href": "/api/posts?page=2&size=10",
+      "templated": false
+    },
+    "templated": {
+      "href": "/api/posts{?page,size}",
+      "templated": true
+    }
   },
-  {
-    "id": 2,
-    "title": "Преимущества HAL+JSON",
-    "content": "HAL (Hypertext Application Language) — это простой формат для представления гипермедиа ресурсов. Он позволяет легко добавлять ссылки и встроенные ресурсы.",
-    "author": "Мария Иванова",
-    "status": "PUBLISHED",
-    "createdAtOffset": -86400000,
-    "publishedAtOffset": -86400000
+  "_embedded": {
+    "items": [
+      {
+        "id": 1,
+        "title": "Как использовать HATEOAS",
+        "content": "HATEOAS (Hypermedia as the Engine of Application State) — это архитектурный стиль REST API, который позволяет клиенту динамически навигироваться по API через гипермедиа-ссылки.",
+        "author": "Иван Петров",
+        "status": "DRAFT",
+        "createdAt": "2025-02-02T12:00:00.000Z",
+        "publishedAt": null,
+        "_links": {
+          "self": {
+            "href": "/api/posts/1",
+            "type": "application/hal+json"
+          },
+          "publish": {
+            "href": "/api/posts/1/publish",
+            "rel": "publish",
+            "method": "POST"
+          },
+          "update": {
+            "href": "/api/posts/1",
+            "rel": "update",
+            "method": "PUT"
+          },
+          "delete": {
+            "href": "/api/posts/1",
+            "rel": "delete",
+            "method": "DELETE"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Преимущества HAL+JSON",
+        "content": "HAL (Hypertext Application Language) — это простой формат для представления гипермедиа ресурсов. Он позволяет легко добавлять ссылки и встроенные ресурсы.",
+        "author": "Мария Иванова",
+        "status": "PUBLISHED",
+        "createdAt": "2025-02-01T12:00:00.000Z",
+        "publishedAt": "2025-02-01T12:00:00.000Z",
+        "_links": {
+          "self": {
+            "href": "/api/posts/2",
+            "type": "application/hal+json"
+          },
+          "archive": {
+            "href": "/api/posts/2/archive",
+            "rel": "archive",
+            "method": "POST"
+          },
+          "update": {
+            "href": "/api/posts/2",
+            "rel": "update",
+            "method": "PUT"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Архитектура REST API",
+        "content": "REST API должен быть stateless, использовать стандартные HTTP методы и коды ответов, а также поддерживать кэширование.",
+        "author": "Алексей Сидоров",
+        "status": "ARCHIVED",
+        "createdAt": "2025-01-31T12:00:00.000Z",
+        "publishedAt": "2025-02-01T12:00:00.000Z",
+        "_links": {
+          "self": {
+            "href": "/api/posts/3",
+            "type": "application/hal+json"
+          },
+          "republish": {
+            "href": "/api/posts/3/republish",
+            "rel": "republish",
+            "method": "POST"
+          },
+          "delete": {
+            "href": "/api/posts/3",
+            "rel": "delete",
+            "method": "DELETE"
+          }
+        }
+      }
+    ]
   },
-  {
-    "id": 3,
-    "title": "Архитектура REST API",
-    "content": "REST API должен быть stateless, использовать стандартные HTTP методы и коды ответов, а также поддерживать кэширование.",
-    "author": "Алексей Сидоров",
-    "status": "ARCHIVED",
-    "createdAtOffset": -172800000,
-    "publishedAtOffset": -86400000
-  }
-]
+  "page": 1,
+  "size": 10,
+  "totalElements": 3,
+  "totalPages": 1
+}

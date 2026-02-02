@@ -1,8 +1,12 @@
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import dayjs from 'dayjs';
 import { Post, PostStatus } from './entities/post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-import { getMockPosts } from './mock-data.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -22,10 +26,16 @@ export class PostsService {
   }
 
   private seedData() {
-    const mockData = getMockPosts();
-    this.posts = mockData.map((data) => new Post(data));
-    // Устанавливаем nextId на максимальный ID из мок-данных + 1
-    this.nextId = Math.max(...mockData.map((p) => p.id || 0)) + 1;
+    const jsonPath = join(__dirname, 'mock-data.json');
+    const hal = JSON.parse(readFileSync(jsonPath, 'utf-8')) as {
+      _embedded: { items: Array<Partial<Post> & { _links?: unknown }> };
+    };
+    const items = hal._embedded.items;
+    this.posts = items.map((item) => {
+      const { _links, ...postFields } = item;
+      return new Post(postFields);
+    });
+    this.nextId = Math.max(...this.posts.map((p) => p.id || 0)) + 1;
   }
 
   findAll(page: number = 1, size: number = 10): { posts: Post[]; total: number } {
