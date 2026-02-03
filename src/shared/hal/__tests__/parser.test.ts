@@ -32,15 +32,21 @@ describe('hal/parser', () => {
       expect(isHALResource(true)).toBe(false);
     });
 
-    it('возвращает false для объекта без _links', () => {
-      expect(isHALResource({})).toBe(false);
-      expect(isHALResource({ id: 1, title: 'x' })).toBe(false);
+    it('возвращает true для объекта без _links (_links опционален по спецификации)', () => {
+      expect(isHALResource({})).toBe(true);
+      expect(isHALResource({ id: 1, title: 'x' })).toBe(true);
     });
 
-    it('возвращает false если _links не объект или массив', () => {
+    it('возвращает false если _links присутствует но не объект или массив', () => {
       expect(isHALResource({ _links: null })).toBe(false);
       expect(isHALResource({ _links: 'invalid' })).toBe(false);
       expect(isHALResource({ _links: [] })).toBe(false);
+    });
+
+    it('возвращает false если _embedded присутствует но не объект (в т.ч. массив)', () => {
+      expect(isHALResource({ _embedded: null })).toBe(false);
+      expect(isHALResource({ _embedded: 'invalid' })).toBe(false);
+      expect(isHALResource({ _embedded: [] })).toBe(false);
     });
   });
 
@@ -156,6 +162,11 @@ describe('hal/parser', () => {
     it('возвращает null для null/undefined ресурса', () => {
       expect(getEmbedded(null, 'items')).toBeNull();
       expect(getEmbedded(undefined, 'items')).toBeNull();
+    });
+
+    it('возвращает null если _embedded — массив (по спецификации должен быть объект)', () => {
+      const resource = { _embedded: [] } as unknown as HALResource;
+      expect(getEmbedded(resource, 'items')).toBeNull();
     });
   });
 

@@ -1,53 +1,62 @@
 /**
- * Типы для HAL (Hypertext Application Language).
- * Спецификация: RFC 5988 (Web Linking), RFC 6570 (URI Template).
- * Модуль самодостаточен и может быть вынесен в отдельный пакет.
+ * Типы для HAL (JSON Hypertext Application Language).
+ * Спецификация: draft-kelly-json-hal (IETF), RFC 5988 (Web Linking), RFC 6570 (URI Template).
+ *
+ * @see https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
  */
 
-/** Допустимые HTTP-методы для ссылок HAL */
+/** HTTP-метод для ссылки (расширение HAL; в спецификации Link Object не определяет method) */
 export type HALHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 /**
- * Ссылка HAL (элемент объекта _links).
- * Обязательное поле: href. Остальные — по спецификации и расширениям.
+ * Link Object (раздел 5 спецификации).
+ * Имена свойств — link relation types по RFC 5988; тип связи задаётся ключом в _links.
  */
 export interface HALLink {
-  /** URI ссылки или URI Template */
+  /** URI или URI Template [RFC3986, RFC6570] — обязательно (раздел 5.1) */
   href: string;
-  /** Relation type (если не совпадает с ключом в _links) */
-  rel?: string;
-  /** Hint для media type целевого ресурса */
-  type?: string;
-  /** HTTP-метод (для не-GET) */
-  method?: HALHttpMethod;
-  /** true, если href — URI Template */
+  /** templated: true, если href — URI Template (5.2) */
   templated?: boolean;
-  /** Человекочитаемое описание */
+  /** Подсказка media type целевого ресурса (5.3) */
+  type?: string;
+  /** Признак устаревания: URL с информацией о deprecation (5.4) */
+  deprecation?: string;
+  /** Вторичный ключ при нескольких ссылках с одним relation type (5.5) */
+  name?: string;
+  /** URI профиля целевого ресурса [RFC6906] (5.6) */
+  profile?: string;
+  /** Человекочитаемая метка [RFC5988] (5.7) */
   title?: string;
-  /** Доп. свойства: deprecation, name, profile, hreflang и т.д. */
+  /** Язык целевого ресурса [RFC5988] (5.8) */
+  hreflang?: string;
+  /** Расширение: HTTP-метод (в спецификации HAL не описан) */
+  method?: HALHttpMethod;
+  /** Relation type, если дублируется в теле ссылки (расширение) */
+  rel?: string;
   [key: string]: unknown;
 }
 
 /**
- * Значение по одному ключу в _links: одна ссылка или массив ссылок (HAL допускает оба варианта).
+ * Значение по одному ключу в _links: одна ссылка или массив ссылок (раздел 4.1.1).
  */
 export type HALLinkValue = HALLink | HALLink[];
 
 /**
- * Базовый HAL-ресурс.
- * Обязательно поле _links; _embedded и остальные свойства — опциональны.
+ * Resource Object (раздел 4).
+ * Корневой объект HAL-документа; _links и _embedded опциональны по спецификации.
  */
 export interface HALResource {
-  /** Связи ресурса: rel → ссылка или массив ссылок */
-  _links: Record<string, HALLinkValue>;
-  /** Вложенные ресурсы */
+  /** Связи ресурса: link relation type → Link Object или массив Link Objects (4.1.1, OPTIONAL) */
+  _links?: Record<string, HALLinkValue>;
+  /** Вложенные ресурсы: relation type → Resource Object или массив (4.1.2, OPTIONAL) */
   _embedded?: Record<string, unknown>;
-  /** Собственные свойства ресурса */
+  /** Остальные свойства — состояние ресурса (valid JSON) */
   [key: string]: unknown;
 }
 
 /**
- * HAL-коллекция с типизированным списком элементов и полями пагинации.
+ * HAL-коллекция с типизированным _embedded.items и полями пагинации.
+ * Пагинация — соглашение поверх HAL, не часть спецификации.
  */
 export interface HALCollection<T extends HALResource = HALResource> extends HALResource {
   _embedded?: {

@@ -12,14 +12,19 @@ function getLinkValue(
   resource: HALResource | undefined | null,
   rel: string
 ): HALLinkValue | undefined {
-  if (!resource?._links || typeof resource._links !== 'object') {
+  if (
+    !resource?._links ||
+    typeof resource._links !== 'object' ||
+    Array.isArray(resource._links)
+  ) {
     return undefined;
   }
   return resource._links[rel];
 }
 
 /**
- * Проверяет, что значение является HAL-ресурсом (наличие корректного _links).
+ * Проверяет, что значение является HAL Resource Object (раздел 4 спецификации).
+ * Ресурс может не иметь _links и _embedded; проверяются только зарезервированные свойства.
  *
  * @param value — произвольное значение
  * @returns type guard: true если value — HALResource
@@ -29,13 +34,21 @@ export function isHALResource(value: unknown): value is HALResource {
     return false;
   }
   const candidate = value as HALResource;
-  const links = candidate._links;
-  return (
-    links !== undefined &&
-    typeof links === 'object' &&
-    links !== null &&
-    !Array.isArray(links)
-  );
+  if (candidate._links !== undefined) {
+    if (typeof candidate._links !== 'object' || candidate._links === null || Array.isArray(candidate._links)) {
+      return false;
+    }
+  }
+  if (candidate._embedded !== undefined) {
+    if (
+      typeof candidate._embedded !== 'object' ||
+      candidate._embedded === null ||
+      Array.isArray(candidate._embedded)
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -90,7 +103,11 @@ export function getEmbedded<T = unknown>(
   resource: HALResource | undefined | null,
   key: string
 ): T | null {
-  if (!resource?._embedded || typeof resource._embedded !== 'object') {
+  if (
+    !resource?._embedded ||
+    typeof resource._embedded !== 'object' ||
+    Array.isArray(resource._embedded)
+  ) {
     return null;
   }
   const value = resource._embedded[key];
@@ -189,8 +206,12 @@ export const NAVIGATION_RELS: ReadonlySet<string> = new Set([
 export function getActionRels(
   resource: HALResource | undefined | null
 ): string[] {
-  if (!resource?._links || typeof resource._links !== 'object') {
+  if (
+    !resource?._links ||
+    typeof resource._links !== 'object' ||
+    Array.isArray(resource._links)
+  ) {
     return [];
   }
-  return Object.keys(resource._links).filter((rel) => NAVIGATION_RELS.has(rel) === false);
+  return Object.keys(resource._links).filter((rel) => !NAVIGATION_RELS.has(rel));
 }
