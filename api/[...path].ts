@@ -20,17 +20,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // В Vercel catch-all роуте путь передается через req.query.path
-  // Для запроса /api/posts?page=1&size=10:
-  // - req.url = '/api/posts?page=1&size=10'
-  // - req.query.path = ['posts'] или 'posts'
-  // - req.query.page = '1'
-  // - req.query.size = '10'
-  
-  // Используем req.url напрямую, если он начинается с /api
+  // В Vercel req.url может быть полным URL (https://...) или путём (/api/...).
+  // Для Fastify.inject нужен только path + query.
   let url: string;
-  if (req.url && req.url.startsWith('/api')) {
-    url = req.url;
+  const rawUrl = req.url ?? '';
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+    const parsed = new URL(rawUrl);
+    url = parsed.pathname + parsed.search;
+  } else if (rawUrl.startsWith('/api')) {
+    url = rawUrl;
   } else {
     // Иначе конструируем путь из query параметров
     const pathParam = req.query.path;
