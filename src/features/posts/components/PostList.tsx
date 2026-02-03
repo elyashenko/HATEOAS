@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useListPostsQuery } from '../../../api/postsApi';
 import { PostCard } from './PostCard';
 import { HateoasClient } from '../../../api/hateoas-client';
@@ -9,6 +10,7 @@ import { formatError } from '../../../shared/utils/errorFormatter';
  * Список постов с пагинацией на основе HATEOAS ссылок
  */
 export function PostList() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useListPostsQuery({ page, size: 10 });
 
@@ -62,7 +64,11 @@ export function PostList() {
     <div>
       <div className="space-y-4 mb-6">
         {data._embedded.items.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard
+            key={post.id}
+            post={post}
+            onEditClick={() => navigate(`/posts/${post.id}?edit=1`)}
+          />
         ))}
       </div>
 

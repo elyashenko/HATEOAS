@@ -12,14 +12,6 @@
       "href": "/api/posts?page=1&size=10",
       "templated": false
     },
-    "prev": {
-      "href": "/api/posts?page=0&size=10",
-      "templated": false
-    },
-    "next": {
-      "href": "/api/posts?page=2&size=10",
-      "templated": false
-    },
     "templated": {
       "href": "/api/posts{?page,size}",
       "templated": true

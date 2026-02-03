@@ -1,12 +1,16 @@
+import { useDispatch } from 'react-redux';
 import dayjs from 'dayjs';
 import type { BlogPost } from '../../../api/types';
 import { useHateoasLinks } from '../hooks/useHateoasLinks';
 import {
   usePublishPostMutation,
   useArchivePostMutation,
+  useRepublishPostMutation,
   useDeletePostMutation,
+  postsApi,
 } from '../../../api/postsApi';
 import { HateoasButton } from '../../../shared/components/HateoasButton';
+import type { AppDispatch } from '../../../store/store';
 
 interface PostCardProps {
   post: BlogPost;
@@ -17,17 +21,25 @@ interface PostCardProps {
  * Карточка поста с действиями на основе HATEOAS ссылок
  */
 export function PostCard({ post, onEditClick }: PostCardProps) {
-  const { canPublish, canArchive, canUpdate, canDelete, publishLink, archiveLink, updateLink, deleteLink } =
+  const dispatch = useDispatch<AppDispatch>();
+  const { canPublish, canArchive, canRepublish, canUpdate, canDelete, publishLink, archiveLink, republishLink, updateLink, deleteLink } =
     useHateoasLinks(post);
 
   const [publishPost, { isLoading: isPublishing }] = usePublishPostMutation();
   const [archivePost, { isLoading: isArchiving }] = useArchivePostMutation();
+  const [republishPost, { isLoading: isRepublishing }] = useRepublishPostMutation();
   const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+
+  const invalidateOnConflict = () => {
+    dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }, { type: 'Post', id: 'LIST' }]));
+  };
 
   const handlePublish = async () => {
     try {
       await publishPost(post.id).unwrap();
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      if (err?.status === 409) invalidateOnConflict();
       console.error('Failed to publish post:', error);
     }
   };
@@ -35,8 +47,20 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
   const handleArchive = async () => {
     try {
       await archivePost(post.id).unwrap();
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      if (err?.status === 409) invalidateOnConflict();
       console.error('Failed to archive post:', error);
+    }
+  };
+
+  const handleRepublish = async () => {
+    try {
+      await republishPost(post.id).unwrap();
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      if (err?.status === 409) invalidateOnConflict();
+      console.error('Failed to republish post:', error);
     }
   };
 
@@ -109,6 +133,17 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
             variant="secondary"
           >
             {isArchiving ? 'Архивирование...' : 'Архивировать'}
+          </HateoasButton>
+        )}
+
+        {canRepublish && (
+          <HateoasButton
+            link={republishLink}
+            onClick={handleRepublish}
+            disabled={isRepublishing}
+            variant="primary"
+          >
+            {isRepublishing ? 'Переопубликация...' : 'Переопубликовать'}
           </HateoasButton>
         )}
 

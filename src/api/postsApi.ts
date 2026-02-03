@@ -121,7 +121,11 @@ export const postsApi = createApi({
         try {
           const updatedPost = (await HateoasClient.executeAction(post, 'publish')) as BlogPost;
           return { data: updatedPost };
-        } catch (_error) {
+        } catch (e: unknown) {
+          const err = e as Error & { status?: number; data?: string };
+          if (typeof err.status === 'number') {
+            return { error: { status: err.status, error: err.message, data: err.data } };
+          }
           const availableActions = HateoasClient.getAvailableActions(post);
           return {
             error: {
@@ -150,12 +154,49 @@ export const postsApi = createApi({
         try {
           const updatedPost = (await HateoasClient.executeAction(post, 'archive')) as BlogPost;
           return { data: updatedPost };
-        } catch (_error) {
+        } catch (e: unknown) {
+          const err = e as Error & { status?: number; data?: string };
+          if (typeof err.status === 'number') {
+            return { error: { status: err.status, error: err.message, data: err.data } };
+          }
           const availableActions = HateoasClient.getAvailableActions(post);
           return {
             error: {
               status: 'CUSTOM_ERROR' as const,
               error: new ActionNotAvailableError('archive', availableActions).message,
+              data: availableActions,
+            },
+          };
+        }
+      },
+      invalidatesTags: (_result, _error, id) => [{ type: 'Post', id }],
+    }),
+
+    /**
+     * Переопубликовать пост (из архива)
+     */
+    republishPost: builder.mutation<BlogPost, number>({
+      queryFn: async (id, _api, _extraOptions, baseQuery) => {
+        const getPostResult = await baseQuery(`/posts/${id}`);
+        if (getPostResult.error) {
+          return { error: getPostResult.error };
+        }
+
+        const post = getPostResult.data as BlogPost;
+
+        try {
+          const updatedPost = (await HateoasClient.executeAction(post, 'republish')) as BlogPost;
+          return { data: updatedPost };
+        } catch (e: unknown) {
+          const err = e as Error & { status?: number; data?: string };
+          if (typeof err.status === 'number') {
+            return { error: { status: err.status, error: err.message, data: err.data } };
+          }
+          const availableActions = HateoasClient.getAvailableActions(post);
+          return {
+            error: {
+              status: 'CUSTOM_ERROR' as const,
+              error: new ActionNotAvailableError('republish', availableActions).message,
               data: availableActions,
             },
           };
@@ -223,5 +264,6 @@ export const {
   useUpdatePostMutation,
   usePublishPostMutation,
   useArchivePostMutation,
+  useRepublishPostMutation,
   useDeletePostMutation,
 } = postsApi;

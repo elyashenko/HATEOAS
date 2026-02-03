@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetPostQuery } from '../../../api/postsApi';
 import { PostCard } from '../components/PostCard';
 import { PostEditor } from '../components/PostEditor';
@@ -11,7 +11,14 @@ import { formatError } from '../../../shared/utils/errorFormatter';
 export function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('edit') === '1') {
+      setIsEditing(true);
+    }
+  }, [searchParams]);
 
   const { data: post, isLoading, error } = useGetPostQuery(Number(id));
 

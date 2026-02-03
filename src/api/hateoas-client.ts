@@ -86,14 +86,20 @@ export class HateoasClient {
       },
     };
 
-    if (payload && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      options.body = JSON.stringify(payload);
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+      options.body = payload !== undefined && payload !== null
+        ? JSON.stringify(payload)
+        : '{}';
     }
 
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      throw new Error(`Failed to execute action "${action}": ${response.statusText}`);
+      const body = await response.text();
+      const err = new Error(`Failed to execute action "${action}": ${response.statusText}`) as Error & { status?: number; data?: string };
+      err.status = response.status;
+      err.data = body;
+      throw err;
     }
 
     return (await response.json()) as HateoasResource;

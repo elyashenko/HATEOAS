@@ -1,7 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import { PostsService } from './posts/posts.service.js';
-import { NotFoundError } from './posts/posts.service.js';
+import { NotFoundError, InvalidStateTransitionError } from './posts/posts.service.js';
 import { z } from 'zod';
 import { CreatePostSchema } from './posts/dto/create-post.dto.js';
 import { UpdatePostSchema } from './posts/dto/update-post.dto.js';
@@ -31,6 +31,8 @@ fastify.setErrorHandler((error, request, reply) => {
   let statusCode = 500;
   if (error instanceof NotFoundError) {
     statusCode = 404;
+  } else if (error instanceof InvalidStateTransitionError) {
+    statusCode = 409;
   } else if ((error as any).statusCode) {
     statusCode = (error as any).statusCode;
   } else if ((error as any).status) {
@@ -222,6 +224,9 @@ fastify.post('/api/posts/:id/publish', async (request, reply) => {
     if (error instanceof NotFoundError) {
       return reply.code(404).send({ error: error.message });
     }
+    if (error instanceof InvalidStateTransitionError) {
+      return reply.code(409).send({ error: error.message });
+    }
     return reply.code(400).send({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -240,6 +245,9 @@ fastify.post('/api/posts/:id/archive', async (request, reply) => {
     if (error instanceof NotFoundError) {
       return reply.code(404).send({ error: error.message });
     }
+    if (error instanceof InvalidStateTransitionError) {
+      return reply.code(409).send({ error: error.message });
+    }
     return reply.code(400).send({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -257,6 +265,9 @@ fastify.post('/api/posts/:id/republish', async (request, reply) => {
   } catch (error) {
     if (error instanceof NotFoundError) {
       return reply.code(404).send({ error: error.message });
+    }
+    if (error instanceof InvalidStateTransitionError) {
+      return reply.code(409).send({ error: error.message });
     }
     return reply.code(400).send({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

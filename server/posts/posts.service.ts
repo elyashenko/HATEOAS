@@ -15,6 +15,14 @@ export class NotFoundError extends Error {
   }
 }
 
+/** Ошибка недопустимого перехода состояния (например, архивирование неопубликованного поста) */
+export class InvalidStateTransitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidStateTransitionError';
+  }
+}
+
 export class PostsService {
   // In-memory хранилище (в реальном приложении использовать БД)
   private posts: Post[] = [];
@@ -85,7 +93,7 @@ export class PostsService {
   publish(id: number): Post {
     const post = this.findOne(id);
     if (post.status !== PostStatus.DRAFT) {
-      throw new Error(`Нельзя опубликовать пост со статусом ${post.status}`);
+      throw new InvalidStateTransitionError(`Нельзя опубликовать пост со статусом ${post.status}`);
     }
     post.status = PostStatus.PUBLISHED;
     post.publishedAt = dayjs().toISOString();
@@ -95,7 +103,7 @@ export class PostsService {
   archive(id: number): Post {
     const post = this.findOne(id);
     if (post.status !== PostStatus.PUBLISHED) {
-      throw new Error(`Нельзя архивировать пост со статусом ${post.status}`);
+      throw new InvalidStateTransitionError(`Нельзя архивировать пост со статусом ${post.status}`);
     }
     post.status = PostStatus.ARCHIVED;
     return post;
@@ -104,7 +112,7 @@ export class PostsService {
   republish(id: number): Post {
     const post = this.findOne(id);
     if (post.status !== PostStatus.ARCHIVED) {
-      throw new Error(`Нельзя переопубликовать пост со статусом ${post.status}`);
+      throw new InvalidStateTransitionError(`Нельзя переопубликовать пост со статусом ${post.status}`);
     }
     post.status = PostStatus.PUBLISHED;
     post.publishedAt = dayjs().toISOString();
