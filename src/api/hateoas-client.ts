@@ -1,8 +1,9 @@
 import type { HateoasLink, HateoasResource, LinkRelationType } from './types';
 import { resolveApiUrl } from './config';
+import { getLink as halGetLink, getActionRels, parseTemplateLink as halParseTemplateLink } from '../shared/hal';
 
 /**
- * Универсальный клиент для работы с HATEOAS ссылками
+ * Универсальный клиент для работы с HATEOAS ссылками (поверх HAL-парсера)
  */
 export class HateoasClient {
   /**
@@ -12,21 +13,7 @@ export class HateoasClient {
     resource: T | undefined | null,
     rel: LinkRelationType | string
   ): HateoasLink | null {
-    if (!resource?._links) {
-      return null;
-    }
-
-    const link = resource._links[rel];
-    if (!link) {
-      return null;
-    }
-
-    // Если массив ссылок, возвращаем первую
-    if (Array.isArray(link)) {
-      return link[0] || null;
-    }
-
-    return link;
+    return halGetLink(resource ?? undefined, rel);
   }
 
   /**
@@ -36,7 +23,7 @@ export class HateoasClient {
     resource: T | undefined | null,
     rel: LinkRelationType | string
   ): boolean {
-    return this.getLink(resource, rel) !== null;
+    return halGetLink(resource ?? undefined, rel) !== null;
   }
 
   /**
@@ -45,21 +32,7 @@ export class HateoasClient {
   static getAvailableActions<T extends HateoasResource>(
     resource: T | undefined | null
   ): string[] {
-    if (!resource?._links) {
-      return [];
-    }
-
-    const navigationRels: Set<string> = new Set([
-      'self',
-      'author',
-      'comments',
-      'next',
-      'prev',
-      'first',
-      'last',
-    ]);
-
-    return Object.keys(resource._links).filter((rel) => !navigationRels.has(rel));
+    return getActionRels(resource ?? undefined);
   }
 
   /**
@@ -106,52 +79,12 @@ export class HateoasClient {
   }
 
   /**
-   * Распарсить шаблонную ссылку с подстановкой переменных
+   * Распарсить шаблонную ссылку с подстановкой переменных (RFC 6570)
    */
   static parseTemplateLink(
     link: HateoasLink,
     variables: Record<string, string | number | undefined>
   ): string {
-    if (!link.templated) {
-      return link.href;
-    }
-
-    let href = link.href;
-
-    // Обработка шаблонов вида "/api/posts{?page,size}"
-    const templateMatch = href.match(/\{(\?)?([^}]+)\}/);
-    if (templateMatch) {
-      const isQuery = templateMatch[1] === '?';
-      const params = templateMatch[2].split(',').map((p) => p.trim());
-
-      if (isQuery) {
-        const queryParams: string[] = [];
-        params.forEach((param) => {
-          const value = variables[param];
-          if (value !== undefined && value !== null) {
-            queryParams.push(`${param}=${encodeURIComponent(value)}`);
-          }
-        });
-
-        if (queryParams.length > 0) {
-          // Проверяем, есть ли уже query параметры в URL (до шаблона)
-          const urlBeforeTemplate = href.substring(0, templateMatch.index || 0);
-          const separator = urlBeforeTemplate.includes('?') ? '&' : '?';
-          href = href.replace(templateMatch[0], separator + queryParams.join('&'));
-        } else {
-          href = href.replace(templateMatch[0], '');
-        }
-      } else {
-        // Обработка path параметров вида {id}
-        params.forEach((param) => {
-          const value = variables[param];
-          if (value !== undefined && value !== null) {
-            href = href.replace(`{${param}}`, String(value));
-          }
-        });
-      }
-    }
-
-    return href;
+    return halParseTemplateLink(link, variables);
   }
 }

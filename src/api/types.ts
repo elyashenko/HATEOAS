@@ -1,40 +1,13 @@
 /**
- * Типы для работы с HAL+JSON ресурсами в архитектуре HATEOAS
+ * Типы для работы с HAL+JSON ресурсами в архитектуре HATEOAS.
+ * Базовые HAL-типы переэкспортируются из общего модуля hal.
  */
 
-/**
- * Ссылка HATEOAS с метаданными
- */
-export interface HateoasLink {
-  href: string;
-  rel?: string;
-  type?: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  templated?: boolean;
-  title?: string;
-}
+import type { HALLink, HALResource, HALCollection } from '../shared/hal';
 
-/**
- * Базовый интерфейс для HAL ресурса
- */
-export interface HateoasResource {
-  _links: Record<string, HateoasLink | HateoasLink[]>;
-  _embedded?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-/**
- * HAL коллекция с пагинацией
- */
-export interface HateoasCollection<T extends HateoasResource> extends HateoasResource {
-  _embedded?: {
-    items: T[];
-  };
-  page?: number;
-  size?: number;
-  totalElements?: number;
-  totalPages?: number;
-}
+export type HateoasLink = HALLink;
+export type HateoasResource = HALResource;
+export type HateoasCollection<T extends HALResource = HALResource> = HALCollection<T>;
 
 /**
  * Типы связей (rel) для постов
@@ -61,7 +34,7 @@ export type PostStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 /**
  * Пост блога как HAL ресурс
  */
-export interface BlogPost extends HateoasResource {
+export interface BlogPost extends HALResource {
   id: number;
   title: string;
   content: string;
