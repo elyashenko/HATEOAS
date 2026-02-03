@@ -2,6 +2,8 @@
 
 Frontend проект на React + TypeScript с архитектурой HATEOAS (Hypermedia as the Engine of Application State) и HAL+JSON.
 
+**Демо:** [https://hateoas.vercel.app/](https://hateoas.vercel.app/)
+
 ## Описание
 
 Этот проект демонстрирует, как фронтенд может быть максимально отвязан от жёстко закодированных endpoint'ов и управляться гипермедиа-ссылками, которые возвращает сервер.
@@ -21,19 +23,24 @@ Frontend проект на React + TypeScript с архитектурой HATEOA
 ```
 src/
   api/
+    config.ts             # Конфигурация API (base URL и т.д.)
     types.ts              # TS интерфейсы для HAL-ресурсов
-    hateoas-client.ts     # универсальный клиент для работы с HATEOAS ссылками
+    hateoas-client.ts     # Универсальный клиент для работы с HATEOAS ссылками
     postsApi.ts           # RTK Query endpoints для постов
+    __tests__/            # Тесты HateoasClient и API
   features/
     posts/
-      components/         # Компоненты постов
-      hooks/              # Хуки для работы с постами
-      pages/              # Страницы приложения
+      components/         # Компоненты постов (PostCard, PostEditor, PostList)
+      hooks/              # Хуки (useHateoasLinks, usePostActions, usePostStateMachine)
+      pages/              # Страницы (PostsPage, PostDetailPage)
   shared/
-    components/           # Общие компоненты
-    utils/                # Утилиты
+    components/           # Общие компоненты (HateoasButton)
+    hal/                  # HAL-парсер: типы, парсинг _links/_embedded, URI Template (см. shared/hal/README.md)
+    utils/                # Утилиты (errorFormatter, linkParser)
   store/
     store.ts              # Redux store
+  test/
+    setup.ts              # Настройка тестового окружения
 ```
 
 ## Установка и запуск
@@ -143,19 +150,18 @@ npm test
 
 ## Особенности реализации
 
-1. **HateoasClient** - универсальный клиент для работы со ссылками
-2. **Условный рендеринг** - UI кнопки отображаются только если есть соответствующая ссылка в `_links`
-3. **State machine** - опциональная проверка консистентности состояний
-4. **Типобезопасность** - полная типизация всех HAL ресурсов
+1. **HateoasClient** — универсальный клиент для работы со ссылками
+2. **HAL parser** (`shared/hal/`) — типы и функции для чтения `_links`/`_embedded`, раскрытие URI Template (RFC 6570), type guards для HAL-ресурсов
+3. **Условный рендеринг** — UI-кнопки отображаются только если есть соответствующая ссылка в `_links`
+4. **State machine** — опциональная проверка консистентности состояний постов
+5. **Типобезопасность** — полная типизация всех HAL-ресурсов
 
 ## Тестирование
 
-Проект включает базовые тесты для HATEOAS логики:
+Проект включает тесты для HATEOAS-логики:
 
-- Тесты для `HateoasClient`
-- Проверка работы со ссылками
-- Проверка парсинга шаблонных ссылок
-- Проверка выполнения действий
+- **HateoasClient** (`api/__tests__/`) — работа со ссылками, парсинг шаблонных ссылок, выполнение действий
+- **HAL parser** (`shared/hal/__tests__/`) — парсинг `_links`/`_embedded`, URI Template, type guards
 
 ## Лицензия
 

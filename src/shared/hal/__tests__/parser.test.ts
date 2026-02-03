@@ -119,7 +119,7 @@ describe('hal/parser', () => {
       const result = getLinks(resource, 'items');
       expect(result).toHaveLength(2);
       expect(result).toEqual([{ href: '/api/1' }, { href: '/api/2' }]);
-      expect(result).not.toBe(resource._links.items);
+      expect(result).not.toBe(resource._links!.items);
     });
 
     it('возвращает пустой массив если rel нет', () => {
