@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { Post, PostStatus } from './entities/post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-import mockData from './mock-data.json';
+import mockData from './mock-data.json' with { type: 'json' };
 
 export class NotFoundError extends Error {
   constructor(message: string) {
