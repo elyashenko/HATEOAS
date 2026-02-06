@@ -25,9 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Для Fastify.inject нужен только path + query.
   let url: string;
   
-  // В Vercel catch-all routes путь приходит в req.query.path как массив
-  // Например: /api/posts/2/archive -> req.query.path = ['posts', '2', 'archive']
-  const pathParam = req.query.path;
+  // В Vercel catch-all routes путь приходит в req.query['...path'] (с тремя точками!)
+  // Например: /api/posts/2/archive -> req.query['...path'] может быть строкой "posts/2/archive" или массивом ['posts', '2', 'archive']
+  // Также может быть req.query.path для обычных параметров
+  const pathParam = (req.query as any)['...path'] || req.query.path;
   
   if (pathParam) {
     // Обрабатываем массив или строку
@@ -35,6 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (Array.isArray(pathParam)) {
       path = pathParam.join('/');
     } else if (typeof pathParam === 'string') {
+      // Если это строка, используем как есть (может быть "posts" или "posts/2/archive")
       path = pathParam;
     } else {
       path = '';
@@ -43,10 +45,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Формируем полный путь с /api в начале
     const fullPath = path ? `/api/${path}` : '/api';
     
-    // Добавляем query параметры (исключаем служебный параметр path)
+    // Добавляем query параметры (исключаем служебные параметры path и ...path)
     const queryParams: Record<string, string> = {};
     for (const [key, value] of Object.entries(req.query)) {
-      if (key !== 'path') {
+      // Пропускаем служебные параметры catch-all route
+      if (key !== 'path' && key !== '...path') {
         if (Array.isArray(value)) {
           queryParams[key] = value[0] || '';
         } else if (value !== undefined) {
@@ -61,23 +64,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     url = queryString ? `${fullPath}?${queryString}` : fullPath;
   } else {
-    // Если path нет в query (не должно происходить для catch-all, но на всякий случай)
-    // Используем req.url и извлекаем путь
+    // Если path нет в query, используем req.url и извлекаем путь
+    // Но сначала проверяем, может быть путь в req.url уже содержит /api/posts/...
     const rawUrl = req.url ?? '';
     
+    // Убираем ...path из query параметров, если он есть в URL
+    let cleanUrl = rawUrl;
+    if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
+      cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
+      // Если после удаления остался только ?, убираем его
+      cleanUrl = cleanUrl.replace(/\?$/, '');
+    }
+    
     // Проверяем, является ли URL абсолютным
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-      const parsed = new URL(rawUrl);
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      const parsed = new URL(cleanUrl);
       url = parsed.pathname + parsed.search;
-    } else if (rawUrl.startsWith('/api')) {
+    } else if (cleanUrl.startsWith('/api')) {
       // Относительный путь, начинающийся с /api
-      url = rawUrl;
-    } else if (rawUrl.startsWith('/')) {
+      url = cleanUrl;
+    } else if (cleanUrl.startsWith('/')) {
       // Путь начинается с /, но не с /api - добавляем /api
-      url = `/api${rawUrl}`;
+      url = `/api${cleanUrl}`;
     } else {
       // Путь без / - добавляем /api/
-      url = `/api/${rawUrl}`;
+      url = `/api/${cleanUrl}`;
     }
   }
   
@@ -96,8 +107,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     method: req.method,
     query: req.query,
     queryPath: req.query.path,
+    queryPathDots: (req.query as any)['...path'],
     queryPathType: typeof req.query.path,
+    queryPathDotsType: typeof (req.query as any)['...path'],
     queryPathIsArray: Array.isArray(req.query.path),
+    queryPathDotsIsArray: Array.isArray((req.query as any)['...path']),
     finalUrl: url,
     hasBody: req.body !== undefined && req.body !== null,
     bodyType: req.body ? typeof req.body : 'null',
