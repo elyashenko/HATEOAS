@@ -55,6 +55,8 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
     setError(null);
     try {
       await archivePost(post.id).unwrap();
+      // Явно обновляем данные после успешного архивирования
+      invalidateOnConflict();
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();

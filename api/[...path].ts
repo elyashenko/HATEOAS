@@ -6,15 +6,21 @@ let app: Awaited<ReturnType<typeof buildApp>> | null = null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Логируем ВСЕ запросы в самом начале для отладки
+  // Используем JSON.stringify для гарантированного вывода
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    queryKeys: Object.keys(req.query),
+    pathParam: (req.query as any)['...path'],
+    pathParamType: typeof (req.query as any)['...path'],
+    pathParamIsArray: Array.isArray((req.query as any)['...path']),
+    regularPath: req.query.path,
+    hasBody: req.body !== undefined && req.body !== null,
+  };
   console.log('=== Vercel Handler Called ===');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Query:', JSON.stringify(req.query, null, 2));
-  console.log('Query keys:', Object.keys(req.query));
-  console.log('...path value:', (req.query as any)['...path']);
-  console.log('path value:', req.query.path);
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body:', req.body ? (typeof req.body === 'string' ? req.body.substring(0, 200) : JSON.stringify(req.body).substring(0, 200)) : 'null');
+  console.log(JSON.stringify(logEntry, null, 2));
   
   // Инициализируем приложение при первом запросе
   if (!app) {

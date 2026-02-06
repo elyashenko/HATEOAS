@@ -169,6 +169,46 @@ export const postsApi = createApi({
           };
         }
       },
+      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
+        try {
+          const { data: updatedPost } = await queryFulfilled;
+          
+          // Обновляем кэш для конкретного поста
+          dispatch(
+            postsApi.util.updateQueryData('getPost', id, () => updatedPost)
+          );
+          
+          // Обновляем пост в списке постов для всех страниц
+          const state = getState() as any;
+          const listQueries = postsApi.endpoints.listPosts.select({ page: 1, size: 10 })(state);
+          
+          if (listQueries?.data?._embedded?.items) {
+            dispatch(
+              postsApi.util.updateQueryData('listPosts', { page: 1, size: 10 }, (draft) => {
+                if (draft?._embedded?.items) {
+                  const index = draft._embedded.items.findIndex((p) => p.id === id);
+                  if (index !== -1) {
+                    draft._embedded.items[index] = updatedPost;
+                  }
+                }
+              })
+            );
+          }
+          
+          // Инвалидируем список для перезагрузки других страниц
+          dispatch(
+            postsApi.util.invalidateTags([{ type: 'Post', id: 'LIST' }])
+          );
+        } catch {
+          // В случае ошибки инвалидируем теги для перезагрузки
+          dispatch(
+            postsApi.util.invalidateTags([
+              { type: 'Post', id },
+              { type: 'Post', id: 'LIST' },
+            ])
+          );
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Post', id },
         { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования

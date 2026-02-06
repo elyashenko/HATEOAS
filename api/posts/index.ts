@@ -1,15 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildApp } from '../../server/main.js';
+import { buildApp } from '../../../server/main.js';
 
 // Кэшируем экземпляр Fastify приложения
 let app: Awaited<ReturnType<typeof buildApp>> | null = null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  console.log('=== Posts [id] Handler Called ===');
+  console.log('=== Posts Index Handler Called ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Query:', JSON.stringify(req.query, null, 2));
-  console.log('ID:', req.query.id);
   
   // Инициализируем приложение при первом запросе
   if (!app) {
@@ -26,8 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const id = req.query.id as string;
-  const url = `/api/posts/${id}`;
+  const url = `/api/posts${req.url?.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`;
   
   console.log('Forwarding to Fastify:', url);
 
@@ -57,9 +55,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
     
-    // Для POST/PUT/PATCH без тела не устанавливаем Content-Type
-    if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && !payload) {
-      delete headers['content-type'];
+    if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && payload) {
+      if (!headers['content-type']) {
+        headers['content-type'] = 'application/json';
+      }
     }
     
     const response = await app.inject({
@@ -83,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.send(response.body);
   } catch (error) {
-    console.error('Error in posts [id] handler:', error);
+    console.error('Error in posts index handler:', error);
     return res.status(500).json({ 
       error: { 
         code: '500', 
