@@ -30,8 +30,14 @@ export function resolveApiUrl(href: string): string {
     return href;
   }
 
-  // В продакшене используем относительные URL
+  // В продакшене используем абсолютный URL на основе текущего origin
+  // Это необходимо для корректной работы fetch с относительными путями
   if (import.meta.env.PROD) {
+    // В браузере используем window.location.origin
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${href}`;
+    }
+    // На сервере (SSR) возвращаем как есть
     return href;
   }
 
