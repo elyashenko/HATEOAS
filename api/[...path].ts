@@ -10,6 +10,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Query:', JSON.stringify(req.query, null, 2));
+  console.log('Query keys:', Object.keys(req.query));
+  console.log('...path value:', (req.query as any)['...path']);
+  console.log('path value:', req.query.path);
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
   console.log('Body:', req.body ? (typeof req.body === 'string' ? req.body.substring(0, 200) : JSON.stringify(req.body).substring(0, 200)) : 'null');
   
