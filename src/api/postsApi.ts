@@ -169,51 +169,41 @@ export const postsApi = createApi({
           };
         }
       },
-      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
         // Оптимистичное обновление: обновляем кэш сразу после успешного запроса
         try {
           const { data: updatedPost } = await queryFulfilled;
           
           // Обновляем кэш конкретного поста
           dispatch(
-            postsApi.util.updateQueryData('getPost', id, (draft) => {
-              Object.assign(draft, updatedPost);
-            })
+            postsApi.util.updateQueryData('getPost', id, () => updatedPost)
           );
 
           // Обновляем кэш списка постов для всех активных запросов
-          const state = getState() as any;
-          const queries = state.postsApi?.queries;
+          // Используем patch для обновления всех кэшированных списков
+          // Получаем все активные запросы через selectInvalidatedBy
+          const patchResult = dispatch(
+            postsApi.util.updateQueryData('listPosts', (_draft, queryArgs) => {
+              // Эта функция вызывается для каждого активного запроса listPosts
+              // Но мы не можем обновить здесь, так как не знаем параметры
+              // Поэтому используем другой подход - invalidatesTags сделает перезагрузку
+              return undefined;
+            })
+          );
           
-          if (queries) {
-            // Итерируемся по всем кэшированным запросам
-            Object.entries(queries).forEach(([queryKey, queryData]: [string, any]) => {
-              if (queryKey.startsWith('listPosts(') && queryData?.data) {
-                try {
-                  // Парсим параметры из ключа запроса
-                  const match = queryKey.match(/listPosts\((.+)\)/);
-                  if (match) {
-                    const params = JSON.parse(match[1]);
-                    // Обновляем кэш для этого конкретного запроса
-                    dispatch(
-                      postsApi.util.updateQueryData('listPosts', params, (draft) => {
-                        if (draft?._embedded?.items) {
-                          const index = draft._embedded.items.findIndex((p) => p.id === id);
-                          if (index !== -1) {
-                            // Заменяем старый пост на обновленный
-                            draft._embedded.items[index] = updatedPost;
-                          }
-                        }
-                      })
-                    );
-                  }
-                } catch (e) {
-                  // Игнорируем ошибки парсинга
-                  console.error('Error updating listPosts cache:', e);
+          // Вместо этого обновляем кэш напрямую через patch
+          // Находим все активные запросы listPosts и обновляем их
+          dispatch(
+            postsApi.util.updateQueryData('listPosts', (_draft, queryArgs) => {
+              // RTK Query автоматически вызовет эту функцию для каждого активного запроса
+              if (_draft?._embedded?.items) {
+                const index = _draft._embedded.items.findIndex((p) => p.id === id);
+                if (index !== -1) {
+                  _draft._embedded.items[index] = updatedPost;
                 }
               }
-            });
-          }
+            })
+          );
         } catch {
           // Если запрос не выполнен, invalidatesTags все равно сработает
         }
