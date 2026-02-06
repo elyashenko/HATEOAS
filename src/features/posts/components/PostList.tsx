@@ -12,7 +12,7 @@ import { formatError } from '../../../shared/utils/errorFormatter';
 export function PostList() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const { data, isLoading, error, refetch } = useListPostsQuery({ page, size: 10 });
+  const { data, isLoading, error } = useListPostsQuery({ page, size: 10 });
 
   if (isLoading) {
     return (
@@ -68,7 +68,6 @@ export function PostList() {
             key={post.id}
             post={post}
             onEditClick={() => navigate(`/posts/${post.id}?edit=1`)}
-            onPostUpdated={refetch}
           />
         ))}
       </div>

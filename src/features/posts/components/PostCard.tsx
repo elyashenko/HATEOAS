@@ -17,13 +17,12 @@ import { formatError } from '../../../shared/utils/errorFormatter';
 interface PostCardProps {
   post: BlogPost;
   onEditClick?: () => void;
-  onPostUpdated?: () => void;
 }
 
 /**
  * Карточка поста с действиями на основе HATEOAS ссылок
  */
-export function PostCard({ post, onEditClick, onPostUpdated }: PostCardProps) {
+export function PostCard({ post, onEditClick }: PostCardProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { canPublish, canArchive, canRepublish, canUpdate, canDelete, publishLink, archiveLink, republishLink, updateLink, deleteLink } =
     useHateoasLinks(post);
@@ -39,12 +38,6 @@ export function PostCard({ post, onEditClick, onPostUpdated }: PostCardProps) {
     dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }, { type: 'Post', id: 'LIST' }]));
   };
 
-  const refetchList = () => {
-    // Инвалидируем теги и принудительно перезагружаем список
-    dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: 'LIST' }]));
-    // Также инвалидируем конкретный пост
-    dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }]));
-  };
 
   const handlePublish = async () => {
     setError(null);
@@ -63,10 +56,8 @@ export function PostCard({ post, onEditClick, onPostUpdated }: PostCardProps) {
     setError(null);
     try {
       await archivePost(post.id).unwrap();
-      // После успешного архивирования обновляем данные
-      refetchList();
-      // Также вызываем callback для обновления списка
-      onPostUpdated?.();
+      // invalidatesTags должен автоматически обновить данные
+      // Не вызываем refetch, чтобы избежать лишних запросов
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();

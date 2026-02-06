@@ -169,6 +169,52 @@ export const postsApi = createApi({
           };
         }
       },
+      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
+        try {
+          const { data: updatedPost } = await queryFulfilled;
+          
+          // Обновляем кэш конкретного поста
+          dispatch(
+            postsApi.util.updateQueryData('getPost', id, (draft) => {
+              Object.assign(draft, updatedPost);
+            })
+          );
+
+          // Обновляем кэш списка постов для всех возможных страниц
+          // Получаем все активные запросы listPosts из кэша
+          const state = getState() as any;
+          const cache = state.postsApi?.queries;
+          
+          if (cache) {
+            Object.keys(cache).forEach((queryKey) => {
+              // Проверяем, является ли это запросом listPosts
+              if (queryKey.startsWith('listPosts(')) {
+                try {
+                  // Парсим параметры из ключа (примерно "listPosts({\"page\":1,\"size\":10})")
+                  const match = queryKey.match(/listPosts\((.+)\)/);
+                  if (match) {
+                    const params = JSON.parse(match[1]);
+                    dispatch(
+                      postsApi.util.updateQueryData('listPosts', params, (draft) => {
+                        if (draft?._embedded?.items) {
+                          const index = draft._embedded.items.findIndex((p) => p.id === id);
+                          if (index !== -1) {
+                            draft._embedded.items[index] = updatedPost;
+                          }
+                        }
+                      })
+                    );
+                  }
+                } catch (e) {
+                  // Игнорируем ошибки парсинга
+                }
+              }
+            });
+          }
+        } catch {
+          // Если запрос не выполнен, invalidatesTags все равно сработает
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Post', id },
         { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования
