@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import dayjs from 'dayjs';
 import type { BlogPost } from '../../../api/types';
@@ -13,7 +12,6 @@ import {
 } from '../../../api/postsApi';
 import { HateoasButton } from '../../../shared/components/HateoasButton';
 import type { AppDispatch } from '../../../store/store';
-import { formatError } from '../../../shared/utils/errorFormatter';
 import { formatError } from '../../../shared/utils/errorFormatter';
 
 interface PostCardProps {
