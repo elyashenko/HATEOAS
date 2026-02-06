@@ -71,9 +71,12 @@ export class HateoasClient {
     };
 
     if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
-      options.body = payload !== undefined && payload !== null
-        ? JSON.stringify(payload)
-        : '{}';
+      // Для запросов без payload не отправляем тело (некоторые серверы могут требовать отсутствие тела)
+      if (payload !== undefined && payload !== null) {
+        options.body = JSON.stringify(payload);
+      }
+      // Если payload не передан, не устанавливаем body (undefined)
+      // Это правильно для запросов типа archive, которые не требуют тела
     }
 
     const response = await fetch(url, options);

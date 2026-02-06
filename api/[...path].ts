@@ -91,6 +91,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     method: req.method,
     query: req.query,
     finalUrl: url,
+    hasBody: req.body !== undefined && req.body !== null,
+    bodyType: req.body ? typeof req.body : 'null',
+    contentType: req.headers['content-type'] || req.headers['Content-Type'],
   });
 
   // Обрабатываем запрос через Fastify
@@ -124,11 +127,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
     
-    // Убеждаемся что Content-Type установлен для POST/PUT/PATCH с телом
+    // Убеждаемся что Content-Type установлен ТОЛЬКО для POST/PUT/PATCH с телом
+    // Для запросов без тела (например, archive) не устанавливаем Content-Type
     if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && payload) {
       if (!headers['content-type']) {
         headers['content-type'] = 'application/json';
       }
+    } else if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && !payload) {
+      // Для POST/PUT/PATCH без тела удаляем Content-Type, если он был установлен клиентом
+      // Это важно для запросов типа archive, которые не требуют тела
+      delete headers['content-type'];
+    }
+    
+    // Дополнительное логирование для POST запросов (особенно archive)
+    if (method === 'POST' && url.includes('archive')) {
+      console.log('Archive request details:', {
+        url,
+        method,
+        payload: payload ? (typeof payload === 'string' ? payload.substring(0, 100) : 'Buffer') : 'undefined',
+        headers: Object.keys(headers),
+        contentType: headers['content-type'],
+      });
     }
     
     const response = await app.inject({
@@ -137,6 +156,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: headers,
       payload: payload,
     });
+    
+    // Логируем ответ для архивных запросов
+    if (method === 'POST' && url.includes('archive')) {
+      console.log('Archive response:', {
+        statusCode: 'statusCode' in response ? response.statusCode : 'unknown',
+        headers: Object.keys(response.headers),
+        bodyLength: response.body ? response.body.length : 0,
+      });
+    }
 
     // Устанавливаем статус и заголовки
     const statusCode = 'statusCode' in response ? response.statusCode : 200;

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
+    "dev:prod": "VITE_PROD_API_URL=https://hateoas.vercel.app/api vite",
     "dev:server": "npm run build:server && node --disable-warning=DEP0169 --watch dist-server/main.js",
     "build": "npm run build:server && npm run build:client",
     "build:client": "tsc && vite build",
