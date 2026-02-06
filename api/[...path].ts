@@ -96,11 +96,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Обрабатываем запрос через Fastify
   try {
     const method = (req.method || 'GET').toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+    
+    // Подготавливаем payload для Fastify.inject
+    // Fastify.inject ожидает строку или Buffer, а не объект
+    let payload: string | Buffer | undefined = undefined;
+    if (req.body !== undefined && req.body !== null) {
+      if (typeof req.body === 'string' || Buffer.isBuffer(req.body)) {
+        payload = req.body;
+      } else {
+        // Если это объект, сериализуем в JSON
+        payload = JSON.stringify(req.body);
+      }
+    }
+    
+    // Подготавливаем заголовки, нормализуем их для Fastify
+    const headers: Record<string, string> = {};
+    // Копируем заголовки из запроса, нормализуя ключи (Fastify ожидает lowercase)
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value !== undefined) {
+        // Fastify ожидает lowercase заголовки
+        const normalizedKey = key.toLowerCase();
+        if (Array.isArray(value)) {
+          headers[normalizedKey] = value[0];
+        } else {
+          headers[normalizedKey] = String(value);
+        }
+      }
+    }
+    
+    // Убеждаемся что Content-Type установлен для POST/PUT/PATCH с телом
+    if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && payload) {
+      if (!headers['content-type']) {
+        headers['content-type'] = 'application/json';
+      }
+    }
+    
     const response = await app.inject({
       method: method,
       url: url,
-      headers: req.headers as Record<string, string>,
-      payload: req.body,
+      headers: headers,
+      payload: payload,
     });
 
     // Устанавливаем статус и заголовки
