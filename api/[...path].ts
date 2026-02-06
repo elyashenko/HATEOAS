@@ -27,7 +27,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       console.log('Initializing Fastify app...');
       app = await buildApp();
-      console.log('Fastify app initialized successfully');
+      // Убеждаемся, что приложение готово к обработке запросов
+      await app.ready();
+      console.log('Fastify app initialized and ready');
     } catch (error) {
       console.error('Failed to initialize Fastify app:', error);
       return res.status(500).json({ 
@@ -36,6 +38,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           message: 'Failed to initialize server application' 
         } 
       });
+    }
+  } else {
+    // Убеждаемся, что приложение готово (на случай если оно было переиспользовано)
+    if (!app.hasStarted) {
+      await app.ready();
     }
   }
 
