@@ -169,7 +169,10 @@ export const postsApi = createApi({
           };
         }
       },
-      invalidatesTags: (_result, _error, id) => [{ type: 'Post', id }],
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Post', id },
+        { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования
+      ],
     }),
 
     /**
