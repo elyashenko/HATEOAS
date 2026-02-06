@@ -78,10 +78,23 @@ export class HateoasClient {
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      const body = await response.text();
-      const err = new Error(`Failed to execute action "${action}": ${response.statusText}`) as Error & { status?: number; data?: string };
+      let errorData: unknown;
+      const contentType = response.headers.get('content-type');
+      
+      try {
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+        } else {
+          const text = await response.text();
+          errorData = text || response.statusText;
+        }
+      } catch {
+        errorData = response.statusText;
+      }
+      
+      const err = new Error(`Failed to execute action "${action}": ${response.statusText}`) as Error & { status?: number; data?: unknown };
       err.status = response.status;
-      err.data = body;
+      err.data = errorData;
       throw err;
     }
 

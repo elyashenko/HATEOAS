@@ -45,10 +45,20 @@ export function formatError(error: unknown): string {
       let message = '';
       if (typeof data === 'string') {
         message = data;
-      } else if (data && typeof data === 'object' && 'message' in data) {
-        message = String(data.message);
-      } else if (data && typeof data === 'object' && 'error' in data) {
-        message = String(data.error);
+      } else if (data && typeof data === 'object') {
+        // Проверяем различные форматы ошибок
+        if ('message' in data && typeof data.message === 'string') {
+          message = data.message;
+        } else if ('error' in data) {
+          // Если error это объект, пытаемся извлечь message из него
+          if (typeof data.error === 'string') {
+            message = data.error;
+          } else if (data.error && typeof data.error === 'object' && 'message' in data.error && typeof data.error.message === 'string') {
+            message = data.error.message;
+          } else if (data.error && typeof data.error === 'object' && 'error' in data.error && typeof data.error.error === 'string') {
+            message = data.error.error;
+          }
+        }
       }
 
       // Стандартные сообщения для HTTP статусов
