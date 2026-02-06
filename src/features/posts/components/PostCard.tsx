@@ -38,6 +38,13 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
     dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }, { type: 'Post', id: 'LIST' }]));
   };
 
+  const refetchList = () => {
+    // Инвалидируем теги и принудительно перезагружаем список
+    dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: 'LIST' }]));
+    // Также инвалидируем конкретный пост
+    dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }]));
+  };
+
   const handlePublish = async () => {
     setError(null);
     try {
@@ -55,6 +62,8 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
     setError(null);
     try {
       await archivePost(post.id).unwrap();
+      // После успешного архивирования обновляем данные
+      refetchList();
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();
