@@ -5,10 +5,20 @@ import { buildApp } from '../server/main.js';
 let app: Awaited<ReturnType<typeof buildApp>> | null = null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Логируем ВСЕ запросы в самом начале для отладки
+  console.log('=== Vercel Handler Called ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Query:', JSON.stringify(req.query, null, 2));
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body:', req.body ? (typeof req.body === 'string' ? req.body.substring(0, 200) : JSON.stringify(req.body).substring(0, 200)) : 'null');
+  
   // Инициализируем приложение при первом запросе
   if (!app) {
     try {
+      console.log('Initializing Fastify app...');
       app = await buildApp();
+      console.log('Fastify app initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Fastify app:', error);
       return res.status(500).json({ 
@@ -21,74 +31,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // В Vercel req.url может быть полным URL (https://...) или путём (/api/...).
-  // Для catch-all routes путь может быть в req.query.path
+  // Для catch-all routes путь может быть в req.query['...path'] или в req.url
   // Для Fastify.inject нужен только path + query.
   let url: string;
   
-  // В Vercel catch-all routes путь приходит в req.query['...path'] (с тремя точками!)
-  // Например: /api/posts/2/archive -> req.query['...path'] может быть строкой "posts/2/archive" или массивом ['posts', '2', 'archive']
-  // Также может быть req.query.path для обычных параметров
-  const pathParam = (req.query as any)['...path'] || req.query.path;
+  const rawUrl = req.url ?? '';
   
-  if (pathParam) {
-    // Обрабатываем массив или строку
-    let path: string;
-    if (Array.isArray(pathParam)) {
-      path = pathParam.join('/');
-    } else if (typeof pathParam === 'string') {
-      // Если это строка, используем как есть (может быть "posts" или "posts/2/archive")
-      path = pathParam;
-    } else {
-      path = '';
-    }
-    
-    // Формируем полный путь с /api в начале
-    const fullPath = path ? `/api/${path}` : '/api';
-    
-    // Добавляем query параметры (исключаем служебные параметры path и ...path)
-    const queryParams: Record<string, string> = {};
-    for (const [key, value] of Object.entries(req.query)) {
-      // Пропускаем служебные параметры catch-all route
-      if (key !== 'path' && key !== '...path') {
-        if (Array.isArray(value)) {
-          queryParams[key] = value[0] || '';
-        } else if (value !== undefined) {
-          queryParams[key] = String(value);
-        }
-      }
-    }
-    
-    const queryString = Object.keys(queryParams)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
-      .join('&');
-    
-    url = queryString ? `${fullPath}?${queryString}` : fullPath;
-  } else {
-    // Если path нет в query, используем req.url и извлекаем путь
-    // Но сначала проверяем, может быть путь в req.url уже содержит /api/posts/...
-    const rawUrl = req.url ?? '';
-    
-    // Убираем ...path из query параметров, если он есть в URL
+  // Сначала проверяем, есть ли полный путь в req.url (для POST запросов это часто так)
+  // Например: /api/posts/2/archive
+  if (rawUrl.startsWith('/api/') && !rawUrl.includes('?...path=') && !rawUrl.includes('&...path=')) {
+    // Если URL уже содержит полный путь /api/..., используем его напрямую
+    // Убираем только служебные параметры ...path из query, если они есть
     let cleanUrl = rawUrl;
     if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
       cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
-      // Если после удаления остался только ?, убираем его
       cleanUrl = cleanUrl.replace(/\?$/, '');
     }
+    url = cleanUrl;
+  } else {
+    // В Vercel catch-all routes путь приходит в req.query['...path'] (с тремя точками!)
+    // Например: /api/posts/2/archive -> req.query['...path'] может быть строкой "posts/2/archive" или массивом ['posts', '2', 'archive']
+    const pathParam = (req.query as any)['...path'] || req.query.path;
     
-    // Проверяем, является ли URL абсолютным
-    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
-      const parsed = new URL(cleanUrl);
-      url = parsed.pathname + parsed.search;
-    } else if (cleanUrl.startsWith('/api')) {
-      // Относительный путь, начинающийся с /api
-      url = cleanUrl;
-    } else if (cleanUrl.startsWith('/')) {
-      // Путь начинается с /, но не с /api - добавляем /api
-      url = `/api${cleanUrl}`;
+    if (pathParam) {
+      // Обрабатываем массив или строку
+      let path: string;
+      if (Array.isArray(pathParam)) {
+        path = pathParam.join('/');
+      } else if (typeof pathParam === 'string') {
+        // Если это строка, используем как есть (может быть "posts" или "posts/2/archive")
+        path = pathParam;
+      } else {
+        path = '';
+      }
+      
+      // Формируем полный путь с /api в начале
+      const fullPath = path ? `/api/${path}` : '/api';
+      
+      // Добавляем query параметры (исключаем служебные параметры path и ...path)
+      const queryParams: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        // Пропускаем служебные параметры catch-all route
+        if (key !== 'path' && key !== '...path') {
+          if (Array.isArray(value)) {
+            queryParams[key] = value[0] || '';
+          } else if (value !== undefined) {
+            queryParams[key] = String(value);
+          }
+        }
+      }
+      
+      const queryString = Object.keys(queryParams)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+        .join('&');
+      
+      url = queryString ? `${fullPath}?${queryString}` : fullPath;
     } else {
-      // Путь без / - добавляем /api/
-      url = `/api/${cleanUrl}`;
+      // Если path нет в query, используем req.url и извлекаем путь
+      // Убираем ...path из query параметров, если он есть в URL
+      let cleanUrl = rawUrl;
+      if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
+        cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
+        cleanUrl = cleanUrl.replace(/\?$/, '');
+      }
+      
+      // Проверяем, является ли URL абсолютным
+      if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+        const parsed = new URL(cleanUrl);
+        url = parsed.pathname + parsed.search;
+      } else if (cleanUrl.startsWith('/api')) {
+        // Относительный путь, начинающийся с /api
+        url = cleanUrl;
+      } else if (cleanUrl.startsWith('/')) {
+        // Путь начинается с /, но не с /api - добавляем /api
+        url = `/api${cleanUrl}`;
+      } else {
+        // Путь без / - добавляем /api/
+        url = `/api/${cleanUrl}`;
+      }
     }
   }
   
@@ -186,11 +206,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         statusCode: 'statusCode' in response ? response.statusCode : 'unknown',
         headers: Object.keys(response.headers),
         bodyLength: response.body ? response.body.length : 0,
+        bodyPreview: response.body ? String(response.body).substring(0, 200) : 'empty',
       });
     }
 
     // Устанавливаем статус и заголовки
     const statusCode = 'statusCode' in response ? response.statusCode : 200;
+    console.log(`Response status: ${statusCode} for ${method} ${url}`);
     res.status(statusCode);
     
     // Копируем заголовки из ответа Fastify
@@ -204,6 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Отправляем тело ответа
     return res.send(response.body);
   } catch (error) {
+    console.error('=== ERROR in Vercel Handler ===');
     console.error('Error handling request:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
@@ -214,6 +237,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       stack: errorStack,
       url: url,
       method: req.method,
+      originalUrl: req.url,
+      query: req.query,
     });
     
     return res.status(500).json({ 
