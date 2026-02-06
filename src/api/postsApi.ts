@@ -169,45 +169,6 @@ export const postsApi = createApi({
           };
         }
       },
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
-        try {
-          const { data: updatedPost } = await queryFulfilled;
-          
-          // Обновляем кэш для конкретного поста
-          dispatch(
-            postsApi.util.updateQueryData('getPost', id, () => updatedPost)
-          );
-          
-          // Обновляем пост во всех кэшированных списках постов
-          // RTK Query автоматически найдет все кэшированные запросы listPosts
-          dispatch(
-            postsApi.util.updateQueryData('listPosts', { page: 1, size: 10 }, (draft) => {
-              if (draft?._embedded?.items) {
-                const index = draft._embedded.items.findIndex((p) => p.id === id);
-                if (index !== -1) {
-                  draft._embedded.items[index] = updatedPost;
-                }
-              }
-            })
-          );
-          
-          // Инвалидируем теги для перезагрузки данных
-          dispatch(
-            postsApi.util.invalidateTags([
-              { type: 'Post', id },
-              { type: 'Post', id: 'LIST' },
-            ])
-          );
-        } catch {
-          // В случае ошибки инвалидируем теги для перезагрузки
-          dispatch(
-            postsApi.util.invalidateTags([
-              { type: 'Post', id },
-              { type: 'Post', id: 'LIST' },
-            ])
-          );
-        }
-      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Post', id },
         { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования
