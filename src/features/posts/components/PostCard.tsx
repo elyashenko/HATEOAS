@@ -17,12 +17,13 @@ import { formatError } from '../../../shared/utils/errorFormatter';
 interface PostCardProps {
   post: BlogPost;
   onEditClick?: () => void;
+  onPostUpdated?: () => void;
 }
 
 /**
  * Карточка поста с действиями на основе HATEOAS ссылок
  */
-export function PostCard({ post, onEditClick }: PostCardProps) {
+export function PostCard({ post, onEditClick, onPostUpdated }: PostCardProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { canPublish, canArchive, canRepublish, canUpdate, canDelete, publishLink, archiveLink, republishLink, updateLink, deleteLink } =
     useHateoasLinks(post);
@@ -64,6 +65,8 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
       await archivePost(post.id).unwrap();
       // После успешного архивирования обновляем данные
       refetchList();
+      // Также вызываем callback для обновления списка
+      onPostUpdated?.();
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();
