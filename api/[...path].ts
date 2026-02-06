@@ -25,9 +25,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Для Fastify.inject нужен только path + query.
   let url: string;
   
-  // Сначала проверяем query.path (для catch-all routes типа api/[...path].ts)
+  // В Vercel catch-all routes путь приходит в req.query.path как массив
+  // Например: /api/posts/2/archive -> req.query.path = ['posts', '2', 'archive']
   const pathParam = req.query.path;
+  
   if (pathParam) {
+    // Обрабатываем массив или строку
     let path: string;
     if (Array.isArray(pathParam)) {
       path = pathParam.join('/');
@@ -37,6 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       path = '';
     }
     
+    // Формируем полный путь с /api в начале
     const fullPath = path ? `/api/${path}` : '/api';
     
     // Добавляем query параметры (исключаем служебный параметр path)
@@ -57,7 +61,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     url = queryString ? `${fullPath}?${queryString}` : fullPath;
   } else {
-    // Если path нет в query, используем req.url
+    // Если path нет в query (не должно происходить для catch-all, но на всякий случай)
+    // Используем req.url и извлекаем путь
     const rawUrl = req.url ?? '';
     
     // Проверяем, является ли URL абсолютным
@@ -85,16 +90,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
   
-  // Логируем для отладки
-  console.log('Vercel handler:', {
+  // Логируем для отладки (всегда, чтобы видеть что происходит)
+  const logData = {
     originalUrl: req.url,
     method: req.method,
     query: req.query,
+    queryPath: req.query.path,
+    queryPathType: typeof req.query.path,
+    queryPathIsArray: Array.isArray(req.query.path),
     finalUrl: url,
     hasBody: req.body !== undefined && req.body !== null,
     bodyType: req.body ? typeof req.body : 'null',
     contentType: req.headers['content-type'] || req.headers['Content-Type'],
-  });
+  };
+  console.log('Vercel handler:', JSON.stringify(logData, null, 2));
 
   // Обрабатываем запрос через Fastify
   try {
