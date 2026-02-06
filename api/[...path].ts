@@ -24,13 +24,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Для Fastify.inject нужен только path + query.
   let url: string;
   const rawUrl = req.url ?? '';
+  
+  // Проверяем, является ли URL абсолютным
   if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
     const parsed = new URL(rawUrl);
     url = parsed.pathname + parsed.search;
   } else if (rawUrl.startsWith('/api')) {
+    // Относительный путь, начинающийся с /api
     url = rawUrl;
   } else {
-    // Иначе конструируем путь из query параметров
+    // Иначе конструируем путь из query параметров (для catch-all routes)
     const pathParam = req.query.path;
     let path: string;
     if (Array.isArray(pathParam)) {
@@ -63,6 +66,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     url = queryString ? `${fullPath}?${queryString}` : fullPath;
   }
   
+  // Убеждаемся, что URL начинается с /api
+  if (!url.startsWith('/api')) {
+    // Если путь не начинается с /api, но начинается с /, добавляем /api
+    if (url.startsWith('/')) {
+      url = `/api${url}`;
+    } else {
+      url = `/api/${url}`;
+    }
+  }
+  
   // Логируем для отладки
   console.log('Vercel handler:', {
     originalUrl: req.url,
@@ -73,15 +86,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Обрабатываем запрос через Fastify
   try {
+    const method = (req.method || 'GET').toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
     const response = await app.inject({
-      method: req.method || 'GET',
+      method: method,
       url: url,
       headers: req.headers as Record<string, string>,
       payload: req.body,
     });
 
     // Устанавливаем статус и заголовки
-    res.status(response.statusCode);
+    const statusCode = 'statusCode' in response ? response.statusCode : 200;
+    res.status(statusCode);
     
     // Копируем заголовки из ответа Fastify
     Object.keys(response.headers).forEach((key) => {

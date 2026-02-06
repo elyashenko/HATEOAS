@@ -51,6 +51,16 @@ export class HateoasClient {
     const method = link.method || 'GET';
     const url = resolveApiUrl(link.href);
 
+    // Логируем для отладки в production
+    if (import.meta.env.PROD && typeof console !== 'undefined') {
+      console.log('[HateoasClient] Executing action:', {
+        action,
+        originalHref: link.href,
+        resolvedUrl: url,
+        method,
+      });
+    }
+
     const options: RequestInit = {
       method,
       headers: {
