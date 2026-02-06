@@ -169,45 +169,6 @@ export const postsApi = createApi({
           };
         }
       },
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
-        // Оптимистичное обновление: обновляем кэш сразу после успешного запроса
-        try {
-          const { data: updatedPost } = await queryFulfilled;
-          
-          // Обновляем кэш конкретного поста
-          dispatch(
-            postsApi.util.updateQueryData('getPost', id, () => updatedPost)
-          );
-
-          // Обновляем кэш списка постов для всех активных запросов
-          // Используем patch для обновления всех кэшированных списков
-          // Получаем все активные запросы через selectInvalidatedBy
-          const patchResult = dispatch(
-            postsApi.util.updateQueryData('listPosts', (_draft, queryArgs) => {
-              // Эта функция вызывается для каждого активного запроса listPosts
-              // Но мы не можем обновить здесь, так как не знаем параметры
-              // Поэтому используем другой подход - invalidatesTags сделает перезагрузку
-              return undefined;
-            })
-          );
-          
-          // Вместо этого обновляем кэш напрямую через patch
-          // Находим все активные запросы listPosts и обновляем их
-          dispatch(
-            postsApi.util.updateQueryData('listPosts', (_draft, queryArgs) => {
-              // RTK Query автоматически вызовет эту функцию для каждого активного запроса
-              if (_draft?._embedded?.items) {
-                const index = _draft._embedded.items.findIndex((p) => p.id === id);
-                if (index !== -1) {
-                  _draft._embedded.items[index] = updatedPost;
-                }
-              }
-            })
-          );
-        } catch {
-          // Если запрос не выполнен, invalidatesTags все равно сработает
-        }
-      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Post', id },
         { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования
