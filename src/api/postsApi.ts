@@ -170,6 +170,7 @@ export const postsApi = createApi({
         }
       },
       async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
+        // Оптимистичное обновление: обновляем кэш сразу после успешного запроса
         try {
           const { data: updatedPost } = await queryFulfilled;
           
@@ -180,25 +181,26 @@ export const postsApi = createApi({
             })
           );
 
-          // Обновляем кэш списка постов для всех возможных страниц
-          // Получаем все активные запросы listPosts из кэша
+          // Обновляем кэш списка постов для всех активных запросов
           const state = getState() as any;
-          const cache = state.postsApi?.queries;
+          const queries = state.postsApi?.queries;
           
-          if (cache) {
-            Object.keys(cache).forEach((queryKey) => {
-              // Проверяем, является ли это запросом listPosts
-              if (queryKey.startsWith('listPosts(')) {
+          if (queries) {
+            // Итерируемся по всем кэшированным запросам
+            Object.entries(queries).forEach(([queryKey, queryData]: [string, any]) => {
+              if (queryKey.startsWith('listPosts(') && queryData?.data) {
                 try {
-                  // Парсим параметры из ключа (примерно "listPosts({\"page\":1,\"size\":10})")
+                  // Парсим параметры из ключа запроса
                   const match = queryKey.match(/listPosts\((.+)\)/);
                   if (match) {
                     const params = JSON.parse(match[1]);
+                    // Обновляем кэш для этого конкретного запроса
                     dispatch(
                       postsApi.util.updateQueryData('listPosts', params, (draft) => {
                         if (draft?._embedded?.items) {
                           const index = draft._embedded.items.findIndex((p) => p.id === id);
                           if (index !== -1) {
+                            // Заменяем старый пост на обновленный
                             draft._embedded.items[index] = updatedPost;
                           }
                         }
@@ -207,6 +209,7 @@ export const postsApi = createApi({
                   }
                 } catch (e) {
                   // Игнорируем ошибки парсинга
+                  console.error('Error updating listPosts cache:', e);
                 }
               }
             });
