@@ -37,52 +37,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   const rawUrl = req.url ?? '';
   
-  // В Vercel для catch-all routes путь может приходить в req.query['...path'] или в req.url
-  // Проверяем оба варианта
+  // В Vercel catch-all routes путь может приходить:
+  // 1. В req.query['...path'] как строка или массив (например, "posts/2" или ["posts", "2"])
+  // 2. В req.url напрямую как /api/posts/2 (для запросов без query параметров)
+  
   const pathParam = (req.query as any)['...path'] || req.query.path;
   
-  // Если путь есть в query, используем его
   if (pathParam) {
-    // В Vercel catch-all routes путь приходит в req.query['...path'] (с тремя точками!)
-    // Например: /api/posts/2/archive -> req.query['...path'] может быть строкой "posts/2/archive" или массивом ['posts', '2', 'archive']
-    const pathParam = (req.query as any)['...path'] || req.query.path;
+    // Путь пришел в query параметрах
+    let path: string;
+    if (Array.isArray(pathParam)) {
+      path = pathParam.join('/');
+    } else if (typeof pathParam === 'string') {
+      path = pathParam;
+    } else {
+      path = '';
+    }
     
-    if (pathParam) {
-      // Обрабатываем массив или строку
-      let path: string;
-      if (Array.isArray(pathParam)) {
-        path = pathParam.join('/');
-      } else if (typeof pathParam === 'string') {
-        // Если это строка, используем как есть (может быть "posts" или "posts/2/archive")
-        path = pathParam;
-      } else {
-        path = '';
-      }
-      
-      // Формируем полный путь с /api в начале
-      const fullPath = path ? `/api/${path}` : '/api';
-      
-      // Добавляем query параметры (исключаем служебные параметры path и ...path)
-      const queryParams: Record<string, string> = {};
-      for (const [key, value] of Object.entries(req.query)) {
-        // Пропускаем служебные параметры catch-all route
-        if (key !== 'path' && key !== '...path') {
-          if (Array.isArray(value)) {
-            queryParams[key] = value[0] || '';
-          } else if (value !== undefined) {
-            queryParams[key] = String(value);
-          }
+    // Формируем полный путь с /api в начале
+    const fullPath = path ? `/api/${path}` : '/api';
+    
+    // Добавляем query параметры (исключаем служебные параметры path и ...path)
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.query)) {
+      if (key !== 'path' && key !== '...path') {
+        if (Array.isArray(value)) {
+          queryParams[key] = value[0] || '';
+        } else if (value !== undefined) {
+          queryParams[key] = String(value);
         }
       }
-      
-      const queryString = Object.keys(queryParams)
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
-        .join('&');
-      
-      url = queryString ? `${fullPath}?${queryString}` : fullPath;
+    }
+    
+    const queryString = Object.keys(queryParams)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+      .join('&');
+    
+    url = queryString ? `${fullPath}?${queryString}` : fullPath;
   } else {
     // Если path нет в query, используем req.url напрямую
-    // Для POST запросов путь обычно приходит в req.url как /api/posts/2/archive
+    // Это работает для запросов типа GET /api/posts/2 или POST /api/posts/2/archive
     let cleanUrl = rawUrl;
     
     // Убираем ...path из query параметров, если он есть
