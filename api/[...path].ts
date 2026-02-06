@@ -21,20 +21,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // В Vercel req.url может быть полным URL (https://...) или путём (/api/...).
+  // Для catch-all routes путь может быть в req.query.path
   // Для Fastify.inject нужен только path + query.
   let url: string;
-  const rawUrl = req.url ?? '';
   
-  // Проверяем, является ли URL абсолютным
-  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-    const parsed = new URL(rawUrl);
-    url = parsed.pathname + parsed.search;
-  } else if (rawUrl.startsWith('/api')) {
-    // Относительный путь, начинающийся с /api
-    url = rawUrl;
-  } else {
-    // Иначе конструируем путь из query параметров (для catch-all routes)
-    const pathParam = req.query.path;
+  // Сначала проверяем query.path (для catch-all routes типа api/[...path].ts)
+  const pathParam = req.query.path;
+  if (pathParam) {
     let path: string;
     if (Array.isArray(pathParam)) {
       path = pathParam.join('/');
@@ -51,7 +44,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     for (const [key, value] of Object.entries(req.query)) {
       if (key !== 'path') {
         if (Array.isArray(value)) {
-          // Для массивов используем первый элемент или объединяем
           queryParams[key] = value[0] || '';
         } else if (value !== undefined) {
           queryParams[key] = String(value);
@@ -64,11 +56,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .join('&');
     
     url = queryString ? `${fullPath}?${queryString}` : fullPath;
+  } else {
+    // Если path нет в query, используем req.url
+    const rawUrl = req.url ?? '';
+    
+    // Проверяем, является ли URL абсолютным
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      const parsed = new URL(rawUrl);
+      url = parsed.pathname + parsed.search;
+    } else if (rawUrl.startsWith('/api')) {
+      // Относительный путь, начинающийся с /api
+      url = rawUrl;
+    } else if (rawUrl.startsWith('/')) {
+      // Путь начинается с /, но не с /api - добавляем /api
+      url = `/api${rawUrl}`;
+    } else {
+      // Путь без / - добавляем /api/
+      url = `/api/${rawUrl}`;
+    }
   }
   
   // Убеждаемся, что URL начинается с /api
   if (!url.startsWith('/api')) {
-    // Если путь не начинается с /api, но начинается с /, добавляем /api
     if (url.startsWith('/')) {
       url = `/api${url}`;
     } else {

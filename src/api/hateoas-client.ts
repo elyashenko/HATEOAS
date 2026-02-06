@@ -52,12 +52,13 @@ export class HateoasClient {
     const url = resolveApiUrl(link.href);
 
     // Логируем для отладки в production
-    if (import.meta.env.PROD && typeof console !== 'undefined') {
+    if (typeof console !== 'undefined') {
       console.log('[HateoasClient] Executing action:', {
         action,
         originalHref: link.href,
         resolvedUrl: url,
         method,
+        windowLocation: typeof window !== 'undefined' ? window.location.href : 'N/A',
       });
     }
 
