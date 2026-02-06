@@ -37,18 +37,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   const rawUrl = req.url ?? '';
   
-  // Сначала проверяем, есть ли полный путь в req.url (для POST запросов это часто так)
-  // Например: /api/posts/2/archive
-  if (rawUrl.startsWith('/api/') && !rawUrl.includes('?...path=') && !rawUrl.includes('&...path=')) {
-    // Если URL уже содержит полный путь /api/..., используем его напрямую
-    // Убираем только служебные параметры ...path из query, если они есть
-    let cleanUrl = rawUrl;
-    if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
-      cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
-      cleanUrl = cleanUrl.replace(/\?$/, '');
-    }
-    url = cleanUrl;
-  } else {
+  // В Vercel для catch-all routes путь может приходить в req.query['...path'] или в req.url
+  // Проверяем оба варианта
+  const pathParam = (req.query as any)['...path'] || req.query.path;
+  
+  // Если путь есть в query, используем его
+  if (pathParam) {
     // В Vercel catch-all routes путь приходит в req.query['...path'] (с тремя точками!)
     // Например: /api/posts/2/archive -> req.query['...path'] может быть строкой "posts/2/archive" или массивом ['posts', '2', 'archive']
     const pathParam = (req.query as any)['...path'] || req.query.path;
@@ -86,29 +80,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .join('&');
       
       url = queryString ? `${fullPath}?${queryString}` : fullPath;
+  } else {
+    // Если path нет в query, используем req.url напрямую
+    // Для POST запросов путь обычно приходит в req.url как /api/posts/2/archive
+    let cleanUrl = rawUrl;
+    
+    // Убираем ...path из query параметров, если он есть
+    if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
+      cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
+      cleanUrl = cleanUrl.replace(/\?$/, '');
+    }
+    
+    // Проверяем, является ли URL абсолютным
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      const parsed = new URL(cleanUrl);
+      url = parsed.pathname + parsed.search;
+    } else if (cleanUrl.startsWith('/api')) {
+      // Относительный путь, начинающийся с /api - используем как есть
+      url = cleanUrl;
+    } else if (cleanUrl.startsWith('/')) {
+      // Путь начинается с /, но не с /api - добавляем /api
+      url = `/api${cleanUrl}`;
     } else {
-      // Если path нет в query, используем req.url и извлекаем путь
-      // Убираем ...path из query параметров, если он есть в URL
-      let cleanUrl = rawUrl;
-      if (rawUrl.includes('&...path=') || rawUrl.includes('?...path=')) {
-        cleanUrl = rawUrl.replace(/[?&]\.\.\.path=[^&]*/g, '');
-        cleanUrl = cleanUrl.replace(/\?$/, '');
-      }
-      
-      // Проверяем, является ли URL абсолютным
-      if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
-        const parsed = new URL(cleanUrl);
-        url = parsed.pathname + parsed.search;
-      } else if (cleanUrl.startsWith('/api')) {
-        // Относительный путь, начинающийся с /api
-        url = cleanUrl;
-      } else if (cleanUrl.startsWith('/')) {
-        // Путь начинается с /, но не с /api - добавляем /api
-        url = `/api${cleanUrl}`;
-      } else {
-        // Путь без / - добавляем /api/
-        url = `/api/${cleanUrl}`;
-      }
+      // Путь без / - добавляем /api/
+      url = `/api/${cleanUrl}`;
     }
   }
   
