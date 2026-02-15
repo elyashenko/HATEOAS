@@ -1,12 +1,8 @@
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import dayjs from 'dayjs';
 import { Post, PostStatus } from './entities/post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import mockData from './mock-data.json' with { type: 'json' };
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -34,8 +30,7 @@ export class PostsService {
   }
 
   private seedData() {
-    const jsonPath = join(__dirname, 'mock-data.json');
-    const hal = JSON.parse(readFileSync(jsonPath, 'utf-8')) as {
+    const hal = mockData as {
       _embedded: { items: Array<Partial<Post> & { _links?: unknown }> };
     };
     const items = hal._embedded.items;

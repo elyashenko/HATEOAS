@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import dayjs from 'dayjs';
 import type { BlogPost } from '../../../api/types';
@@ -11,6 +12,7 @@ import {
 } from '../../../api/postsApi';
 import { HateoasButton } from '../../../shared/components/HateoasButton';
 import type { AppDispatch } from '../../../store/store';
+import { formatError } from '../../../shared/utils/errorFormatter';
 
 interface PostCardProps {
   post: BlogPost;
@@ -30,45 +32,62 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
   const [republishPost, { isLoading: isRepublishing }] = useRepublishPostMutation();
   const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
 
+  const [error, setError] = useState<string | null>(null);
+
   const invalidateOnConflict = () => {
     dispatch(postsApi.util.invalidateTags([{ type: 'Post', id: post.id }, { type: 'Post', id: 'LIST' }]));
   };
 
+
   const handlePublish = async () => {
+    setError(null);
     try {
       await publishPost(post.id).unwrap();
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();
+      const errorMessage = formatError(error);
+      setError(`Ошибка публикации: ${errorMessage}`);
       console.error('Failed to publish post:', error);
     }
   };
 
   const handleArchive = async () => {
+    setError(null);
     try {
       await archivePost(post.id).unwrap();
+      // invalidatesTags должен автоматически обновить данные
+      // Не вызываем refetch, чтобы избежать лишних запросов
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();
+      const errorMessage = formatError(error);
+      setError(`Ошибка архивирования: ${errorMessage}`);
       console.error('Failed to archive post:', error);
     }
   };
 
   const handleRepublish = async () => {
+    setError(null);
     try {
       await republishPost(post.id).unwrap();
     } catch (error: unknown) {
       const err = error as { status?: number };
       if (err?.status === 409) invalidateOnConflict();
+      const errorMessage = formatError(error);
+      setError(`Ошибка переопубликации: ${errorMessage}`);
       console.error('Failed to republish post:', error);
     }
   };
 
   const handleDelete = async () => {
     if (window.confirm('Вы уверены, что хотите удалить этот пост?')) {
+      setError(null);
       try {
         await deletePost(post.id).unwrap();
       } catch (error) {
+        const errorMessage = formatError(error);
+        setError(`Ошибка удаления: ${errorMessage}`);
         console.error('Failed to delete post:', error);
       }
     }
@@ -106,6 +125,12 @@ export function PostCard({ post, onEditClick }: PostCardProps) {
           )}
         </span>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-2 flex-wrap">
         {canUpdate && (

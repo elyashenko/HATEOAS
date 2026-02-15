@@ -122,7 +122,7 @@ export const postsApi = createApi({
           const updatedPost = (await HateoasClient.executeAction(post, 'publish')) as BlogPost;
           return { data: updatedPost };
         } catch (e: unknown) {
-          const err = e as Error & { status?: number; data?: string };
+          const err = e as Error & { status?: number; data?: unknown };
           if (typeof err.status === 'number') {
             return { error: { status: err.status, error: err.message, data: err.data } };
           }
@@ -155,7 +155,7 @@ export const postsApi = createApi({
           const updatedPost = (await HateoasClient.executeAction(post, 'archive')) as BlogPost;
           return { data: updatedPost };
         } catch (e: unknown) {
-          const err = e as Error & { status?: number; data?: string };
+          const err = e as Error & { status?: number; data?: unknown };
           if (typeof err.status === 'number') {
             return { error: { status: err.status, error: err.message, data: err.data } };
           }
@@ -169,7 +169,10 @@ export const postsApi = createApi({
           };
         }
       },
-      invalidatesTags: (_result, _error, id) => [{ type: 'Post', id }],
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Post', id },
+        { type: 'Post', id: 'LIST' }, // Обновляем список постов после архивирования
+      ],
     }),
 
     /**
@@ -188,7 +191,7 @@ export const postsApi = createApi({
           const updatedPost = (await HateoasClient.executeAction(post, 'republish')) as BlogPost;
           return { data: updatedPost };
         } catch (e: unknown) {
-          const err = e as Error & { status?: number; data?: string };
+          const err = e as Error & { status?: number; data?: unknown };
           if (typeof err.status === 'number') {
             return { error: { status: err.status, error: err.message, data: err.data } };
           }

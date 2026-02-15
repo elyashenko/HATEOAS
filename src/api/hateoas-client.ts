@@ -51,6 +51,17 @@ export class HateoasClient {
     const method = link.method || 'GET';
     const url = resolveApiUrl(link.href);
 
+    // Логируем для отладки в production
+    if (typeof console !== 'undefined') {
+      console.log('[HateoasClient] Executing action:', {
+        action,
+        originalHref: link.href,
+        resolvedUrl: url,
+        method,
+        windowLocation: typeof window !== 'undefined' ? window.location.href : 'N/A',
+      });
+    }
+
     const options: RequestInit = {
       method,
       headers: {
@@ -60,18 +71,34 @@ export class HateoasClient {
     };
 
     if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
-      options.body = payload !== undefined && payload !== null
-        ? JSON.stringify(payload)
-        : '{}';
+      // Для запросов без payload не отправляем тело (некоторые серверы могут требовать отсутствие тела)
+      if (payload !== undefined && payload !== null) {
+        options.body = JSON.stringify(payload);
+      }
+      // Если payload не передан, не устанавливаем body (undefined)
+      // Это правильно для запросов типа archive, которые не требуют тела
     }
 
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      const body = await response.text();
-      const err = new Error(`Failed to execute action "${action}": ${response.statusText}`) as Error & { status?: number; data?: string };
+      let errorData: unknown;
+      const contentType = response.headers.get('content-type');
+      
+      try {
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+        } else {
+          const text = await response.text();
+          errorData = text || response.statusText;
+        }
+      } catch {
+        errorData = response.statusText;
+      }
+      
+      const err = new Error(`Failed to execute action "${action}": ${response.statusText}`) as Error & { status?: number; data?: unknown };
       err.status = response.status;
-      err.data = body;
+      err.data = errorData;
       throw err;
     }
 
