@@ -103,23 +103,22 @@ npm test
   "publishedAt": null,
   "_links": {
     "self": {
-      "href": "/api/posts/1",
-      "type": "application/hal+json"
+      "href": "/api/posts/1"
     },
     "publish": {
       "href": "/api/posts/1/publish",
       "rel": "publish",
-      "method": "POST"
+      "type": "POST"
     },
     "update": {
       "href": "/api/posts/1",
       "rel": "update",
-      "method": "PUT"
+      "type": "PUT"
     },
     "delete": {
       "href": "/api/posts/1",
       "rel": "delete",
-      "method": "DELETE"
+      "type": "DELETE"
     }
   }
 }

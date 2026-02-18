@@ -13,10 +13,10 @@ export const mockBlogPostDraft: BlogPost = {
   createdAt: '2025-01-20T10:00:00Z',
   publishedAt: null,
   _links: {
-    self: { href: '/api/posts/1', type: 'application/hal+json' },
-    publish: { href: '/api/posts/1/publish', rel: 'publish', method: 'POST' },
-    update: { href: '/api/posts/1', rel: 'update', method: 'PUT' },
-    delete: { href: '/api/posts/1', rel: 'delete', method: 'DELETE' },
+    self: { href: '/api/posts/1' },
+    publish: { href: '/api/posts/1/publish', rel: 'publish', type: 'POST' },
+    update: { href: '/api/posts/1', rel: 'update', type: 'PUT' },
+    delete: { href: '/api/posts/1', rel: 'delete', type: 'DELETE' },
   },
 };
 
@@ -29,9 +29,9 @@ export const mockBlogPostPublished: BlogPost = {
   createdAt: '2025-01-20T10:00:00Z',
   publishedAt: '2025-01-20T11:00:00Z',
   _links: {
-    self: { href: '/api/posts/2', type: 'application/hal+json' },
-    archive: { href: '/api/posts/2/archive', rel: 'archive', method: 'POST' },
-    update: { href: '/api/posts/2', rel: 'update', method: 'PUT' },
+    self: { href: '/api/posts/2' },
+    archive: { href: '/api/posts/2/archive', rel: 'archive', type: 'POST' },
+    update: { href: '/api/posts/2', rel: 'update', type: 'PUT' },
   },
 };
 
@@ -44,9 +44,9 @@ export const mockBlogPostArchived: BlogPost = {
   createdAt: '2025-01-20T10:00:00Z',
   publishedAt: '2025-01-20T11:00:00Z',
   _links: {
-    self: { href: '/api/posts/3', type: 'application/hal+json' },
-    republish: { href: '/api/posts/3/republish', rel: 'republish', method: 'POST' },
-    delete: { href: '/api/posts/3', rel: 'delete', method: 'DELETE' },
+    self: { href: '/api/posts/3' },
+    republish: { href: '/api/posts/3/republish', rel: 'republish', type: 'POST' },
+    delete: { href: '/api/posts/3', rel: 'delete', type: 'DELETE' },
   },
 };
 

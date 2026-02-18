@@ -5,7 +5,7 @@
  * @see https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
  */
 
-/** HTTP-метод для ссылки (расширение HAL; в спецификации Link Object не определяет method) */
+/** HTTP-метод для ссылки (расширение HAL; в спецификации Link Object не определяет type для метода) */
 export type HALHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 /**
@@ -17,8 +17,8 @@ export interface HALLink {
   href: string;
   /** templated: true, если href — URI Template (5.2) */
   templated?: boolean;
-  /** Подсказка media type целевого ресурса (5.3) */
-  type?: string;
+  /** HTTP-метод запроса (расширение HAL; в спецификации используется type для метода запроса) */
+  type?: HALHttpMethod | string;
   /** Признак устаревания: URL с информацией о deprecation (5.4) */
   deprecation?: string;
   /** Вторичный ключ при нескольких ссылках с одним relation type (5.5) */
@@ -29,8 +29,6 @@ export interface HALLink {
   title?: string;
   /** Язык целевого ресурса [RFC5988] (5.8) */
   hreflang?: string;
-  /** Расширение: HTTP-метод (в спецификации HAL не описан) */
-  method?: HALHttpMethod;
   /** Relation type, если дублируется в теле ссылки (расширение) */
   rel?: string;
   [key: string]: unknown;

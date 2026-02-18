@@ -22,12 +22,12 @@ describe('HateoasClient', () => {
         publishedAt: null,
         _links: {
           self: { href: '/api/posts/1' },
-          publish: { href: '/api/posts/1/publish', method: 'POST' },
+          publish: { href: '/api/posts/1/publish', type: 'POST' },
         },
       };
 
       const link = HateoasClient.getLink(post, 'publish');
-      expect(link).toEqual({ href: '/api/posts/1/publish', method: 'POST' });
+      expect(link).toEqual({ href: '/api/posts/1/publish', type: 'POST' });
     });
 
     it('должен вернуть null если ссылка не найдена', () => {
@@ -105,8 +105,8 @@ describe('HateoasClient', () => {
         _links: {
           self: { href: '/api/posts/1' },
           publish: { href: '/api/posts/1/publish' },
-          update: { href: '/api/posts/1', method: 'PUT' },
-          delete: { href: '/api/posts/1', method: 'DELETE' },
+          update: { href: '/api/posts/1', type: 'PUT' },
+          delete: { href: '/api/posts/1', type: 'DELETE' },
           author: { href: '/api/authors/1' },
           comments: { href: '/api/posts/1/comments' },
         },
@@ -165,7 +165,7 @@ describe('HateoasClient', () => {
         publishedAt: null,
         _links: {
           self: { href: '/api/posts/1' },
-          publish: { href: '/api/posts/1/publish', method: 'POST' },
+          publish: { href: '/api/posts/1/publish', type: 'POST' },
         },
       };
 
@@ -175,8 +175,8 @@ describe('HateoasClient', () => {
         publishedAt: '2025-01-20T11:00:00Z',
         _links: {
           self: { href: '/api/posts/1' },
-          archive: { href: '/api/posts/1/archive', method: 'POST' },
-          update: { href: '/api/posts/1', method: 'PUT' },
+          archive: { href: '/api/posts/1/archive', type: 'POST' },
+          update: { href: '/api/posts/1', type: 'PUT' },
         },
       };
 

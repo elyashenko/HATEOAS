@@ -1,8 +1,7 @@
 export interface HateoasLink {
   href: string;
   rel?: string;
-  type?: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  type?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | string;
   templated?: boolean;
   title?: string;
 }

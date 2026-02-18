@@ -48,7 +48,7 @@ export class HateoasClient {
       throw new Error(`Action "${action}" is not available for this resource`);
     }
 
-    const method = link.method || 'GET';
+    const method = (typeof link.type === 'string' && ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(link.type) ? link.type : 'GET') as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
     const url = resolveApiUrl(link.href);
 
     // Логируем для отладки в production

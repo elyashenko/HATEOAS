@@ -43,7 +43,7 @@ const url = parseTemplateLink(link, { page: 1, size: 10 });
 Типы и парсер ориентированы на [draft-kelly-json-hal](https://datatracker.ietf.org/doc/html/draft-kelly-json-hal) (JSON Hypertext Application Language):
 
 - **Resource Object (раздел 4):** _links и _embedded опциональны; остальные свойства — состояние ресурса.
-- **Link Object (раздел 5):** href (обязательно), templated, type, deprecation, name, profile, title, hreflang. Поле `method` — расширение (в спецификации не описано).
+- **Link Object (раздел 5):** href (обязательно), templated, type (HTTP-метод запроса), deprecation, name, profile, title, hreflang.
 - **_links:** ключи — link relation types [RFC 5988], значения — одна ссылка или массив ссылок.
 - **_embedded:** ключи — relation types, значения — Resource Object или массив (в типах — `unknown` для гибкости).
 

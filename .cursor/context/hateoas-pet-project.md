@@ -43,23 +43,22 @@
      "publishedAt": null,
      "_links": {
        "self": {
-         "href": "/api/posts/1",
-         "type": "application/hal+json"
+         "href": "/api/posts/1"
        },
        "publish": {
          "href": "/api/posts/1/publish",
          "rel": "publish",
-         "method": "POST"
+         "type": "POST"
        },
        "update": {
          "href": "/api/posts/1",
          "rel": "update",
-         "method": "PUT"
+         "type": "PUT"
        },
        "delete": {
          "href": "/api/posts/1",
          "rel": "delete",
-         "method": "DELETE"
+         "type": "DELETE"
        },
        "author": {
          "href": "/api/authors/ivan-petrov",
@@ -113,7 +112,7 @@ src/
 
 HateoasLink:
 
-поля: href, rel?, type?, method? ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'), templated?, title?.
+поля: href, rel?, type? ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | string для HTTP-метода запроса), templated?, title?.
 
 HateoasResource<T = any>:
 
@@ -160,7 +159,7 @@ executeAction(resource, action, payload?):
 
 находит ссылку по rel,
 
-определяет HTTP‑метод из link.method (или 'GET'),
+определяет HTTP‑метод из link.type (или 'GET'),
 
 делает запрос fetch(link.href, options),
 

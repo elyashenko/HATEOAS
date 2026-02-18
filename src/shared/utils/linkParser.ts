@@ -28,5 +28,9 @@ export function isActionLink(rel: string): boolean {
  * Получить HTTP метод для ссылки
  */
 export function getHttpMethod(link: HateoasLink | null): string {
-  return link?.method || 'GET';
+  if (!link) return 'GET';
+  if (typeof link.type === 'string' && ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(link.type)) {
+    return link.type;
+  }
+  return 'GET';
 }

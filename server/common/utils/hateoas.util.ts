@@ -12,7 +12,6 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
   const links: Record<string, HateoasLink> = {
     self: {
       href: `${baseUrl}/api/posts/${post.id}`,
-      type: 'application/hal+json',
     },
   };
 
@@ -22,17 +21,17 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
       links.publish = {
         href: `${baseUrl}/api/posts/${post.id}/publish`,
         rel: 'publish',
-        method: 'POST',
+        type: 'POST',
       };
       links.update = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'update',
-        method: 'PUT',
+        type: 'PUT',
       };
       links.delete = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'delete',
-        method: 'DELETE',
+        type: 'DELETE',
       };
       break;
 
@@ -40,12 +39,12 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
       links.archive = {
         href: `${baseUrl}/api/posts/${post.id}/archive`,
         rel: 'archive',
-        method: 'POST',
+        type: 'POST',
       };
       links.update = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'update',
-        method: 'PUT',
+        type: 'PUT',
       };
       break;
 
@@ -53,12 +52,12 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
       links.republish = {
         href: `${baseUrl}/api/posts/${post.id}/republish`,
         rel: 'republish',
-        method: 'POST',
+        type: 'POST',
       };
       links.delete = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'delete',
-        method: 'DELETE',
+        type: 'DELETE',
       };
       break;
   }
