@@ -55,24 +55,14 @@ export const postsApi = createApi({
     /**
      * Обновить пост
      */
-    updatePost: builder.mutation<BlogPost, { id: number; data: Partial<BlogPost> }>({
-      queryFn: async ({ id, data }, _api, _extraOptions, baseQuery) => {
-        // Сначала получаем пост, чтобы проверить наличие ссылки update
-        const getPostResult = await baseQuery(`/posts/${id}`);
-        if (getPostResult.error) {
-          return { error: getPostResult.error };
-        }
-
-        const post = getPostResult.data as BlogPost;
-        const updateLink = HateoasClient.getLink(post, 'update');
-
+    updatePost: builder.mutation<BlogPost, { id: number; data: Partial<BlogPost>; updateLink: { href: string } }>({
+      queryFn: async ({ data, updateLink }, _api, _extraOptions, _baseQuery) => {
         if (!updateLink) {
-          const availableActions = HateoasClient.getAvailableActions(post);
           return {
             error: {
               status: 'CUSTOM_ERROR' as const,
-              error: new ActionNotAvailableError('update', availableActions).message,
-              data: availableActions,
+              error: 'Update link is not available',
+              data: null,
             },
           };
         }
@@ -101,7 +91,7 @@ export const postsApi = createApi({
         const updatedPost = (await response.json()) as BlogPost;
         return { data: updatedPost };
       },
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Post', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Post', id }, { type: 'Post', id: 'LIST' }],
     }),
 
     /**

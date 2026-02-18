@@ -36,6 +36,7 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
           title,
           content,
         },
+        updateLink,
       }).unwrap();
       onSave?.();
     } catch (error) {
