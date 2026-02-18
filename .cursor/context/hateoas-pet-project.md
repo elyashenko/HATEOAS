@@ -53,7 +53,7 @@
        "update": {
          "href": "/api/posts/1",
          "rel": "update",
-         "type": "PUT"
+         "type": "PATCH"
        },
        "delete": {
          "href": "/api/posts/1",

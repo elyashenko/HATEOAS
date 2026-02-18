@@ -105,7 +105,7 @@ describe('HateoasClient', () => {
         _links: {
           self: { href: '/api/posts/1' },
           publish: { href: '/api/posts/1/publish' },
-          update: { href: '/api/posts/1', type: 'PUT' },
+          update: { href: '/api/posts/1', type: 'PATCH' },
           delete: { href: '/api/posts/1', type: 'DELETE' },
           author: { href: '/api/authors/1' },
           comments: { href: '/api/posts/1/comments' },
@@ -176,7 +176,7 @@ describe('HateoasClient', () => {
         _links: {
           self: { href: '/api/posts/1' },
           archive: { href: '/api/posts/1/archive', type: 'POST' },
-          update: { href: '/api/posts/1', type: 'PUT' },
+          update: { href: '/api/posts/1', type: 'PATCH' },
         },
       };
 

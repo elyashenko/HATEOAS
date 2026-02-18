@@ -26,7 +26,7 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
       links.update = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'update',
-        type: 'PUT',
+        type: 'PATCH',
       };
       links.delete = {
         href: `${baseUrl}/api/posts/${post.id}`,
@@ -44,7 +44,7 @@ export function createPostHalResource(post: Post, baseUrl: string = ''): PostHal
       links.update = {
         href: `${baseUrl}/api/posts/${post.id}`,
         rel: 'update',
-        type: 'PUT',
+        type: 'PATCH',
       };
       break;
 

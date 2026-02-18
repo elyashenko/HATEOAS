@@ -77,11 +77,11 @@ export const postsApi = createApi({
           };
         }
 
-        // Выполняем PUT запрос по ссылке update
+        // Выполняем PATCH запрос по ссылке update
         const href = resolveApiUrl(updateLink.href);
 
         const response = await fetch(href, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: {
             Accept: 'application/hal+json',
             'Content-Type': 'application/json',

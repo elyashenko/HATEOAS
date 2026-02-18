@@ -44,7 +44,7 @@ npm run start:prod
   - Query параметры: `page` (по умолчанию 1), `size` (по умолчанию 10)
 - `GET /api/posts/:id` - получить пост по ID
 - `POST /api/posts` - создать новый пост (статус DRAFT)
-- `PUT /api/posts/:id` - обновить пост (если доступно)
+- `PATCH /api/posts/:id` - обновить пост (если доступно)
 - `DELETE /api/posts/:id` - удалить пост (если доступно)
 - `POST /api/posts/:id/publish` - опубликовать пост (только для DRAFT)
 - `POST /api/posts/:id/archive` - архивировать пост (только для PUBLISHED)
@@ -75,7 +75,7 @@ npm run start:prod
     "update": {
       "href": "/api/posts/1",
       "rel": "update",
-      "type": "PUT"
+      "type": "PATCH"
     },
     "delete": {
       "href": "/api/posts/1",

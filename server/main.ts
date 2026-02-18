@@ -170,7 +170,7 @@ fastify.get('/api/posts/:id', async (request, reply) => {
   }
 });
 
-fastify.put('/api/posts/:id', async (request, reply) => {
+fastify.patch('/api/posts/:id', async (request, reply) => {
   const id = parseInt((request.params as { id: string }).id, 10);
   if (isNaN(id)) {
     return reply.code(400).send({ error: 'Invalid post ID' });

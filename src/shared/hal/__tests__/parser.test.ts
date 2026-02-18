@@ -55,11 +55,11 @@ describe('hal/parser', () => {
       const resource: HALResource = {
         _links: {
           self: { href: '/api/posts/1' },
-          update: { href: '/api/posts/1', type: 'PUT' },
+          update: { href: '/api/posts/1', type: 'PATCH' },
         },
       };
       expect(getLink(resource, 'self')).toEqual({ href: '/api/posts/1' });
-      expect(getLink(resource, 'update')).toEqual({ href: '/api/posts/1', type: 'PUT' });
+      expect(getLink(resource, 'update')).toEqual({ href: '/api/posts/1', type: 'PATCH' });
     });
 
     it('возвращает null если rel нет', () => {
@@ -253,7 +253,7 @@ describe('hal/parser', () => {
         _links: {
           self: { href: '/api/posts/1' },
           publish: { href: '/api/posts/1/publish', type: 'POST' },
-          update: { href: '/api/posts/1', type: 'PUT' },
+          update: { href: '/api/posts/1', type: 'PATCH' },
           author: { href: '/api/authors/1' },
           comments: { href: '/api/posts/1/comments' },
         },

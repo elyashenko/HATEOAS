@@ -15,7 +15,7 @@ export const mockBlogPostDraft: BlogPost = {
   _links: {
     self: { href: '/api/posts/1' },
     publish: { href: '/api/posts/1/publish', rel: 'publish', type: 'POST' },
-    update: { href: '/api/posts/1', rel: 'update', type: 'PUT' },
+    update: { href: '/api/posts/1', rel: 'update', type: 'PATCH' },
     delete: { href: '/api/posts/1', rel: 'delete', type: 'DELETE' },
   },
 };
@@ -31,7 +31,7 @@ export const mockBlogPostPublished: BlogPost = {
   _links: {
     self: { href: '/api/posts/2' },
     archive: { href: '/api/posts/2/archive', rel: 'archive', type: 'POST' },
-    update: { href: '/api/posts/2', rel: 'update', type: 'PUT' },
+    update: { href: '/api/posts/2', rel: 'update', type: 'PATCH' },
   },
 };
 

@@ -113,7 +113,7 @@ npm test
     "update": {
       "href": "/api/posts/1",
       "rel": "update",
-      "type": "PUT"
+      "type": "PATCH"
     },
     "delete": {
       "href": "/api/posts/1",
@@ -139,7 +139,7 @@ npm test
 - `GET /api/posts` - список постов (с пагинацией, query: `page`, `size`)
 - `GET /api/posts/:id` - получить пост
 - `POST /api/posts` - создать новый пост (статус DRAFT)
-- `PUT /api/posts/:id` - обновить пост (если доступно)
+- `PATCH /api/posts/:id` - обновить пост (если доступно)
 - `POST /api/posts/:id/publish` - опубликовать пост (если доступно, только для DRAFT)
 - `POST /api/posts/:id/archive` - архивировать пост (если доступно, только для PUBLISHED)
 - `POST /api/posts/:id/republish` - переопубликовать пост (только для ARCHIVED)
