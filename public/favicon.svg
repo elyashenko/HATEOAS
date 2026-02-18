@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- $>= -->
+  <rect width="64" height="64" rx="8" fill="#2563eb"/>
+  
+  <!-- >:C<5=B/?>AB -->
+  <rect x="12" y="16" width="28" height="36" rx="2" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- !B@>:8 B5:AB0 2 4>:C<5=B5 -->
+  <line x1="18" y1="24" x2="34" y2="24" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="18" y1="30" x2="38" y2="30" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="18" y1="36" x2="32" y2="36" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- 8?5@AAK;:0 (F5?>G:0 AAK;>:) -->
+  <circle cx="44" cy="20" r="4" fill="#ffffff"/>
+  <circle cx="52" cy="28" r="4" fill="#ffffff"/>
+  <circle cx="44" cy="36" r="4" fill="#ffffff"/>
+  
+  <!-- !>548=8B5;L=K5 ;8=88 <564C AAK;:0<8 -->
+  <line x1="46.8" y1="22.8" x2="50.2" y2="26.2" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="50.2" y1="29.8" x2="46.8" y2="33.2" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- !B@5;:0, C:07K20NI0O =0 A2O7L -->
+  <path d="M 40 26 L 36 26 L 38 24 M 36 26 L 38 28" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
